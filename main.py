@@ -23,9 +23,9 @@ else:
         json.dump(configTemplate, f)
 
 
+TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
 
-
-token = configData["Token"]
+#token = configData["Token"]
 prefix = configData["Prefix"]
 
 client = commands.Bot(command_prefix=prefix, intents=intents)
@@ -83,4 +83,4 @@ for fn in os.listdir("./cogs"):
 #################################
 
 
-client.run(token)
+client.run(TOKEN)
