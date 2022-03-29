@@ -65,22 +65,22 @@ async def on_raw_reaction_add(payload):
 
 
 #For cog system
-@client.command()
-async def load(ctx, extension):
-    client.load_extension(f'cogs.{extension}')
-    await ctx.message.delete()
-@client.command()
-async def unload(ctx, extension):
-    client.unload_extension(f'cogs.{extension}')
-    await ctx.message.delete()
-@client.command()
-async def reload(ctx, extension):
-    client.reload_extension(f'cogs.{extension}')
-    await ctx.message.delete()
+#@client.command()
+#async def load(ctx, extension):
+ #   client.load_extension(f'cogs.{extension}')
+  #  await ctx.message.delete()
+#@client.command()
+#async def unload(ctx, extension):
+ #   client.unload_extension(f'cogs.{extension}')
+  #  await ctx.message.delete()
+#@client.command()
+#async def reload(ctx, extension):
+ #   client.reload_extension(f'cogs.{extension}')
+  #  await ctx.message.delete()
 
-for fn in os.listdir("./cogs"):
-    if fn.endswith(".py"):
-        client.load_extension(f"cogs.{fn[:-3]}")
+#for fn in os.listdir("./cogs"):
+ #   if fn.endswith(".py"):
+  #      client.load_extension(f"cogs.{fn[:-3]}")
 #################################
 
 
