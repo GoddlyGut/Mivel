@@ -22,9 +22,9 @@ else:
     with open(os.getcwd() + "/config.json", "w+") as f:
         json.dump(configTemplate, f)
 
-token_new = os.getenv("DISCORD_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN")
         
-TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+#TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
 
 #token = configData["Token"]
 prefix = configData["Prefix"]
@@ -84,4 +84,5 @@ for fn in os.listdir("./cogs"):
 #################################
 
 
-client.run(str(os.environ.get('DISCORD_TOKEN')))
+if __name__ == "__main__":
+    client.run(TOKEN)
