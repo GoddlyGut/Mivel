@@ -78,9 +78,9 @@ async def on_raw_reaction_add(payload):
  #   client.reload_extension(f'cogs.{extension}')
   #  await ctx.message.delete()
 
-#for fn in os.listdir("./cogs"):
- #   if fn.endswith(".py"):
-  #      client.load_extension(f"cogs.{fn[:-3]}")
+for fn in os.listdir("./cogs"):
+      if fn.endswith(".py"):
+        client.load_extension(f"cogs.{fn[:-3]}")
 #################################
 
 
