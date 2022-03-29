@@ -12,6 +12,7 @@ isort==5.8.0
 lazy-object-proxy==1.6.0
 mccabe==0.6.1
 multidict==5.2.0
+nextcord==2.0.0
 orjson==3.6.1
 pylint==2.8.2
 toml==0.10.2
