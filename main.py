@@ -22,7 +22,8 @@ else:
     with open(os.getcwd() + "/config.json", "w+") as f:
         json.dump(configTemplate, f)
 
-
+token_new = os.environ("DISCORD_TOKEN")
+        
 TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
 
 #token = configData["Token"]
@@ -83,4 +84,4 @@ for fn in os.listdir("./cogs"):
 #################################
 
 
-client.run(os.environ["DISCORD_TOKEN"])
+client.run(token_new)
