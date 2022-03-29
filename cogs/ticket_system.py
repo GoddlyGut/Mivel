@@ -1,8 +1,3 @@
-from ast import Delete
-from http import client
-from msilib.schema import Component
-from unicodedata import category, name
-from urllib import request
 from nextcord.ext import commands
 import nextcord
 from nextcord import Guild, Member, Role, RoleTags, member
