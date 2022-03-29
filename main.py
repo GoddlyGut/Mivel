@@ -83,4 +83,4 @@ for fn in os.listdir("./cogs"):
 #################################
 
 
-client.run(TOKEN)
+client.run(os.environ["DISCORD_TOKEN"])
