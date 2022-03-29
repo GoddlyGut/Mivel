@@ -22,7 +22,7 @@ else:
     with open(os.getcwd() + "/config.json", "w+") as f:
         json.dump(configTemplate, f)
 
-token_new = os.environ("DISCORD_TOKEN")
+token_new = os.getenv("DISCORD_TOKEN")
         
 TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
 
