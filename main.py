@@ -22,12 +22,9 @@ else:
     with open(os.getcwd() + "/config.json", "w+") as f:
         json.dump(configTemplate, f)
 
-
-#TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
-
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-#token = configData["Token"]
+#TOKEN = configData["Token"]
 prefix = configData["Prefix"]
 
 client = commands.Bot(command_prefix=prefix, intents=intents)
