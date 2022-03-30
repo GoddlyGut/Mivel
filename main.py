@@ -1,3 +1,4 @@
+from logging.config import listen
 from sre_parse import FLAGS
 from sys import flags
 import nextcord
@@ -23,9 +24,9 @@ else:
         json.dump(configTemplate, f)
 
 
-#TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
 
-TOKEN = os.getenv("DISCORD_TOKEN")
+#TOKEN = os.getenv("DISCORD_TOKEN")
 
 #token = configData["Token"]
 prefix = configData["Prefix"]
@@ -49,7 +50,7 @@ async def on_ready():
     #                ''')
     print("Bot is ready.")
     game = nextcord.Game("Watching Commands")
-    await client.change_presence(status=nextcord.Status.online, activity=game)
+    await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="Commands"))
     
 #For ticket system
 @client.event

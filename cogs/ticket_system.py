@@ -146,7 +146,7 @@ class ticket_system(commands.Cog):
     
         
     
-    @nextcord.slash_command(name="create-ticket", description="Use this command to create a ticket",guild_ids=[testServerId])
+    @nextcord.slash_command(name="ticket", description="Use this command to create a ticket",guild_ids=[testServerId])
     async def ticket(self, interaction: Interaction):
            
         db = sqlite3.connect('ticket.sqlite')
