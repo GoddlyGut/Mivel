@@ -1,8 +1,3 @@
-from optparse import Option
-from pickletools import int4
-from pydoc import cli
-from typing_extensions import Required
-from async_timeout import timeout
 import nextcord
 from nextcord import Guild, Member, member
 from nextcord.ext import commands
