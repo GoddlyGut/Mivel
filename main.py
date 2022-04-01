@@ -1,3 +1,4 @@
+from logging.config import listen
 from sre_parse import FLAGS
 from sys import flags
 import nextcord
@@ -8,7 +9,7 @@ import sqlite3
 from nextcord.utils import get
 
 
-intents = nextcord.Intents.default()
+intents = nextcord.Intents.all()
 intents.members = True
 
 
@@ -22,9 +23,12 @@ else:
     with open(os.getcwd() + "/config.json", "w+") as f:
         json.dump(configTemplate, f)
 
-TOKEN = os.getenv("DISCORD_TOKEN")
 
-#TOKEN = configData["Token"]
+TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+
+#TOKEN = os.getenv("DISCORD_TOKEN")
+
+#token = configData["Token"]
 prefix = configData["Prefix"]
 
 client = commands.Bot(command_prefix=prefix, intents=intents)
@@ -35,18 +39,18 @@ client = commands.Bot(command_prefix=prefix, intents=intents)
 
 @client.event
 async def on_ready():
-    # db = sqlite3.connect('welcome.sqlite')
+    # db = sqlite3.connect('server_info.sqlite')
     # cursor = db.cursor()
     # cursor.execute('''
     #                CREATE TABLE IF NOT EXISTS main(
     #                    guild_id TEXT,
     #                    channel_id TEXT,
-    #                    welcome_message TEXT
+    #                    Enabled TEXT
     #                )
     #                ''')
     print("Bot is ready.")
     game = nextcord.Game("Watching Commands")
-    await client.change_presence(status=nextcord.Status.online, activity=game)
+    await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="Commands"))
     
 #For ticket system
 @client.event

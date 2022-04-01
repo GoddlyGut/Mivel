@@ -224,4 +224,3 @@ class suggestions(commands.Cog):
 
 def setup(client):
     client.add_cog(suggestions(client))
-    
