@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from nextcord import Member
-=======
-from discord import Member
->>>>>>> 984c1e1be8064fba178704eb04a7259ddc01c88a
 from nextcord.ext import commands
 import nextcord
 from nextcord import GuildSticker, Interaction
