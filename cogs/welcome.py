@@ -11,7 +11,7 @@ class welcome_system(commands.Cog):
         embed=nextcord.Embed(
             title="Welcome Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`[.]welcome_settings channel <#channel>`\n`[.]welcome_settings message <'message'>`\n`[.]welcome_settings disable`\n`[.]welcome_settings enable`"
+            description="Available Setup Commands:\n`[m!]welcome_settings channel <#channel>`\n`[m!]welcome_settings message <'message'>`\n`[m!]welcome_settings disable`\n`[m!]welcome_settings enable`"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
@@ -219,7 +219,9 @@ class welcome_system(commands.Cog):
                     title="New User!",
                     colour= nextcord.Colour.blurple(),
                     description=f"Hello {member.mention}, {welcome_description}"
+                    
                 )
+                embed_joined.set_thumbnail(url=member.display_avatar.url)
                 embed_joined.timestamp = datetime.now()
                 
                 await channel.send(embed=embed_joined)

@@ -1,6 +1,3 @@
-from logging.config import listen
-from sre_parse import FLAGS
-from sys import flags
 import nextcord
 from nextcord.ext import commands
 import os
@@ -39,16 +36,17 @@ client = commands.Bot(command_prefix=prefix, intents=intents)
 
 @client.event
 async def on_ready():
-    # db = sqlite3.connect('server_info.sqlite')
+    # db = sqlite3.connect('in_verification.sqlite')
     # cursor = db.cursor()
     # cursor.execute('''
     #                CREATE TABLE IF NOT EXISTS main(
     #                    guild_id TEXT,
-    #                    channel_id TEXT,
+    #                    role TEXT,
     #                    Enabled TEXT
     #                )
     #                ''')
     print("Bot is ready.")
+    client.remove_command('help')
     game = nextcord.Game("Watching Commands")
     await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="Commands"))
     

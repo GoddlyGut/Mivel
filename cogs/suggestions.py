@@ -14,9 +14,8 @@ class suggestions(commands.Cog):
     
    
     
-    testServerId = 907299002586894367
 
-    @nextcord.slash_command(name="suggest",description="Use this command to send a suggestion!",guild_ids=[testServerId])
+    @nextcord.slash_command(name="suggest",description="Use this command to send a suggestion!")
     async def suggest(self, interaction: Interaction, suggestion = nextcord.SlashOption(description="Please fill out a suggestion here!", required=True)):
         
         db = sqlite3.connect('suggest.sqlite')
@@ -42,32 +41,43 @@ class suggestions(commands.Cog):
         
                 await interaction.response.send_message(embed=embed_not_enabled, ephemeral=True)
             else: 
-                channel = self.client.get_channel(int(result[0])) #suggestion-channel
-                embed=nextcord.Embed(
-                    title="Suggestion",
-                    colour= nextcord.Colour.blurple()
-                )
-                    
-                embed.set_footer(text="Type /suggest to send a suggestion!")
-                embed.add_field(name="User", value=interaction.user.mention,inline=False)
-                embed.add_field(name="Suggestion Text", value=suggestion, inline=False)
-                
-                
-                
-                msg = await channel.send(embed=embed)
-                await msg.add_reaction("✅")
-                await msg.add_reaction("❌")
-                
-                
-                embed_success=nextcord.Embed(
-                    title="Suggestion Sent",
-                    colour= nextcord.Colour.green(),
-                    description=f"Suggestion submitted to {channel.mention}"
-                )
+                if result[0] is None:
+                    embed_error=nextcord.Embed(
+                        title="Error",
+                        colour= nextcord.Colour.red(),
+                        description="Please setup the ticket bot before use!"
+                    )
                         
-                embed_success.timestamp = datetime.now()
+                    embed_error.timestamp = datetime.now()
+            
+                    await interaction.response.send_message(embed=embed_error, ephemeral=True)
+                else:
+                    channel = self.client.get_channel(int(result[0])) #suggestion-channel
+                    embed=nextcord.Embed(
+                        title="Suggestion",
+                        colour= nextcord.Colour.blurple()
+                    )
+                        
+                    embed.set_footer(text="Type /suggest to send a suggestion!")
+                    embed.add_field(name="User", value=interaction.user.mention,inline=False)
+                    embed.add_field(name="Suggestion Text", value=suggestion, inline=False)
                     
-                await interaction.response.send_message(embed=embed_success, ephemeral=True)
+                    
+                    
+                    msg = await channel.send(embed=embed)
+                    await msg.add_reaction("✅")
+                    await msg.add_reaction("❌")
+                    
+                    
+                    embed_success=nextcord.Embed(
+                        title="Suggestion Sent",
+                        colour= nextcord.Colour.green(),
+                        description=f"Suggestion submitted to {channel.mention}"
+                    )
+                            
+                    embed_success.timestamp = datetime.now()
+                        
+                    await interaction.response.send_message(embed=embed_success, ephemeral=True)
     
     
     @commands.group(invoke_without_command=True)
@@ -75,7 +85,7 @@ class suggestions(commands.Cog):
         embed=nextcord.Embed(
             title="Suggest Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`[.]suggest_settings channel <#channel>`\n`[.]suggest_settings disable`\n`[.]suggest_settings enable`"
+            description="Available Setup Commands: \n`[m!]suggest_settings channel <#channel>`\n`[m!]suggest_settings disable`\n`[m!]suggest_settings enable`"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)

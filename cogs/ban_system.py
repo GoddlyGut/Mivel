@@ -1,3 +1,4 @@
+from unicodedata import name
 import nextcord
 from nextcord import Guild, Member, member
 from nextcord.ext import commands
@@ -6,14 +7,14 @@ from nextcord import Interaction, SlashOption, ChannelType
 from datetime import datetime, timedelta
 
 
-testServerId = 907299002586894367
+
 
 class ban_system(commands.Cog):
     def __init__(self, client):
         self.client = client
 
 
-    @nextcord.slash_command(name="kick",description="Use this command to kick members!",guild_ids=[testServerId])
+    @nextcord.slash_command(name="kick",description="Use this command to kick members!")
     async def kick(self, interaction: Interaction,member: Member = nextcord.SlashOption(required=True),time:int=nextcord.SlashOption(required=True),reason:str=nextcord.SlashOption(required=True)):
         if interaction.user.guild_permissions.kick_members:
             if member.name != interaction.user.name:
@@ -40,7 +41,7 @@ class ban_system(commands.Cog):
             
             await interaction.response.send_message(embed=embed_error_perms)
     
-    @nextcord.slash_command(name="ban",description="Use this command to ban members!",guild_ids=[testServerId])
+    @nextcord.slash_command(name="ban",description="Use this command to ban members!")
     async def ban(self, interaction: Interaction,member: Member = nextcord.SlashOption(description="Please select a member", required=True),reason=nextcord.SlashOption(description="Please type a valid reason", required=True)):
         if interaction.user.guild_permissions.ban_members:
             if member.name != interaction.user.name:
@@ -69,7 +70,61 @@ class ban_system(commands.Cog):
             await interaction.response.send_message(embed=embed_error_perms)
 
 
-    @nextcord.slash_command(name="timeout", description="Put a user in timeout",guild_ids=[testServerId])
+    @nextcord.slash_command(name="lockdown", description="Lockdown a channel")
+    async def lockdown(self, interaction:Interaction):
+        if interaction.user.guild_permissions.administrator:
+            overwrite= interaction.channel.overwrites_for(interaction.guild.default_role)
+            overwrite.send_messages = False
+            
+            await interaction.channel.set_permissions(interaction.guild.default_role,overwrite=overwrite)
+            
+            embed = nextcord.Embed(
+                title="Channel Lockdown",
+                color=nextcord.Colour.green(),
+                description=f"{interaction.channel.mention} has been successfully locked down by {interaction.user.mention}!"
+            )
+            
+            embed.timestamp = datetime.now()
+            
+            await interaction.response.send_message(embed=embed)
+        else:
+            embed_error_perms=nextcord.Embed(
+                title="Error",
+                colour= nextcord.Colour.red(),
+                description="You do not have the required permissions!"
+            )
+            
+            embed_error_perms.timestamp = datetime.now()
+            
+            await interaction.response.send_message(embed=embed_error_perms)
+    @nextcord.slash_command(name="unlock", description="Unlock a channel")
+    async def unlock(self, interaction:Interaction):
+        if interaction.user.guild_permissions.administrator:
+            overwrite= interaction.channel.overwrites_for(interaction.guild.default_role)
+            overwrite.send_messages = True
+            
+            await interaction.channel.set_permissions(interaction.guild.default_role,overwrite=overwrite)
+            
+            embed = nextcord.Embed(
+                title="Channel Unlocked",
+                color=nextcord.Colour.green(),
+                description=f"{interaction.channel.mention} has been successfully unlocked by {interaction.user.mention}!"
+            )
+            
+            embed.timestamp = datetime.now()
+            
+            await interaction.response.send_message(embed=embed)
+        else:
+            embed_error_perms=nextcord.Embed(
+                title="Error",
+                colour= nextcord.Colour.red(),
+                description="You do not have the required permissions!"
+            )
+            
+            embed_error_perms.timestamp = datetime.now()
+            
+            await interaction.response.send_message(embed=embed_error_perms)
+    @nextcord.slash_command(name="timeout", description="Put a user in timeout")
     
     async def timeout(self, interaction:Interaction, member: Member=nextcord.SlashOption(required=True), days:int=nextcord.SlashOption(required=False),hours:int=nextcord.SlashOption(required=False),minutes:int=nextcord.SlashOption(required=False),seconds:int=nextcord.SlashOption(required=False), reason:str=nextcord.SlashOption(required=False)):
         if interaction.user.guild_permissions.kick_members:
@@ -83,7 +138,7 @@ class ban_system(commands.Cog):
                     minutes = 0
                 if seconds == None:
                     seconds = 0
-    
+
     
                 duration = timedelta(days=days, hours=hours, minutes=minutes,seconds=seconds)
                 await member.timeout(timeout=duration)
@@ -117,7 +172,7 @@ class ban_system(commands.Cog):
             
             await interaction.response.send_message(embed=embed_error_perms)
         
-    @nextcord.slash_command(name="remove-timeout",description="Remove a users timeout",guild_ids=[testServerId])
+    @nextcord.slash_command(name="remove-timeout",description="Remove a users timeout")
     async def remove_timeout(self, interaction:Interaction, user: Member=nextcord.SlashOption(required=True)):
         if interaction.user.guild_permissions.kick_members:
             
@@ -144,7 +199,7 @@ class ban_system(commands.Cog):
             
             await interaction.response.send_message(embed=embed_error_perms)   
     
-    @nextcord.slash_command(name="unban",description="Use this command to unban members!",guild_ids=[testServerId])
+    @nextcord.slash_command(name="unban",description="Use this command to unban members!")
     async def unban(self, interaction: Interaction,member:str= nextcord.SlashOption(description="Please type the members username", required=True)):
         if interaction.user.guild_permissions.ban_members:
             banned_users = await interaction.guild.bans()
@@ -166,6 +221,8 @@ class ban_system(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await interaction.response.send_message(embed=embed_error_perms)
+            
+    
             
 
 def setup(client):

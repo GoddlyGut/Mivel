@@ -19,14 +19,13 @@ class ticket_system(commands.Cog):
     def __init__(self, client):
         self.client = client
         
-    testServerId = 907299002586894367
     
     @commands.group(invoke_without_command=True)
     async def ticket_settings(self, ctx):
         embed=nextcord.Embed(
             title="Ticket Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`[.]ticket_settings role <@role>`\n`[.]ticket_settings message <'message'>`\n`[.]ticket_settings disable`\n`[.]ticket_settings enable`"
+            description="Available Setup Commands:\n`[m!]ticket_settings role <@role>`\n`[m!]ticket_settings message <'message'>`\n`[m!]ticket_settings disable`\n`[m!]ticket_settings enable`"
             
         )
 
@@ -231,7 +230,7 @@ class ticket_system(commands.Cog):
     
         
     
-    @nextcord.slash_command(name="ticket", description="Use this command to create a ticket",guild_ids=[testServerId])
+    @nextcord.slash_command(name="ticket", description="Use this command to create a ticket")
     async def ticket(self, interaction: Interaction):
            
         db = sqlite3.connect('ticket.sqlite')
@@ -273,30 +272,42 @@ class ticket_system(commands.Cog):
                 ticket_message = result_message[0]
                 if get(interaction.guild.categories, name="Support-Category"):
                     SupportCategory = get(interaction.guild.categories, name="Support-Category")
-                    admin_role = get(interaction.guild.roles, id=int(support_role))
-
-                    
-                    if admin_role is None:
-                        newRole = await interaction.guild.create_role(name="Support")
-                        admin_role = newRole.name
+                    if support_role != None:
+                        admin_role = get(interaction.guild.roles, id=int(support_role))
+                        overwrites={
+                            interaction.user: nextcord.PermissionOverwrite(view_channel=True),
+                            interaction.guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
+                            admin_role: nextcord.PermissionOverwrite(view_channel=True),
+                        }
+                    else:
+                        overwrites={
+                            interaction.user: nextcord.PermissionOverwrite(view_channel=True),
+                            interaction.guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
+                        }
                         
-                    overwrites={
-                        interaction.guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
-                        interaction.user: nextcord.PermissionOverwrite(view_channel=True),
-                        admin_role: nextcord.PermissionOverwrite(view_channel=True),
-                    }
                     
                     channel = await interaction.guild.create_text_channel(f"support~{interaction.user.name}", category=SupportCategory, overwrites=overwrites)
                     
                     
                 else:
+                    if support_role != None:
+                        admin_role = get(interaction.guild.roles, id=int(support_role))
+                        overwrites={
+                            interaction.user: nextcord.PermissionOverwrite(view_channel=True),
+                            interaction.guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
+                            admin_role: nextcord.PermissionOverwrite(view_channel=True),
+                        }
+
+                    else:
+                        overwrites={
+                            interaction.user: nextcord.PermissionOverwrite(view_channel=True),
+                            interaction.guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
+                        }
+
+                    
                     newCategory = await interaction.guild.create_category("Support-Category")
-                    admin_role = get(interaction.guild.roles, name=support_role)
-                    overwrites={
-                        interaction.guild.default_role: nextcord.PermissionOverwrite(view_channel=False),
-                        interaction.user: nextcord.PermissionOverwrite(view_channel=True),
-                        admin_role: nextcord.PermissionOverwrite(view_channel=True),
-                    }
+                    
+                    
                     
                     channel = await interaction.guild.create_text_channel(f"support~{interaction.user.name}", category=newCategory, overwrites=overwrites)
                 
@@ -307,6 +318,8 @@ class ticket_system(commands.Cog):
                         
                 embed.timestamp=datetime.now()
                 embed.add_field(name="User", value=interaction.user.mention)
+                if ticket_message is None:
+                    ticket_message = "Hello! Please wait for support member to meet with you."
                 embed.add_field(name="Support", value=ticket_message, inline=False)
                 msg = await channel.send(embed=embed)
                 await msg.add_reaction("🗑️")
