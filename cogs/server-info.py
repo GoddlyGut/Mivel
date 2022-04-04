@@ -1,8 +1,5 @@
 from code import interact
-<<<<<<< HEAD
 import imp
-=======
->>>>>>> b96a4f1218dc26599282f046711a43b37f5a2d9a
 from unicodedata import name
 import nextcord
 from nextcord.ext import commands, tasks
@@ -13,12 +10,9 @@ import roblox
 import asyncio
 roblox_client = roblox.Client()
 
-<<<<<<< HEAD
 
 
 
-=======
->>>>>>> b96a4f1218dc26599282f046711a43b37f5a2d9a
 class server_info(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -723,11 +717,7 @@ class server_info(commands.Cog):
                         if self.client.get_channel(int(result_member[0])) != None:
                             category = self.client.get_channel(int(result_member[0]))
                         else:
-<<<<<<< HEAD
                             member_found = False
-=======
-                            game_found = False
->>>>>>> b96a4f1218dc26599282f046711a43b37f5a2d9a
                             
                     if result_game_channel is None:
                         game_found = False
@@ -962,11 +952,7 @@ class server_info(commands.Cog):
                 
                 text_split_group = channel_group.name.split(": ")
                 
-<<<<<<< HEAD
                 if group.get_members != int(text_split_group[1]):
-=======
-                if int(group.get_members) != int(text_split_group[1]):
->>>>>>> b96a4f1218dc26599282f046711a43b37f5a2d9a
                     await channel_group.edit(fname="Group: {group.get_members}")
                     
             
