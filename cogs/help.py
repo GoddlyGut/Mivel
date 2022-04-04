@@ -27,8 +27,8 @@ class help(commands.Cog):
         embed.add_field(name="Ticket Setup Commands", value="`m!ticket_settings role <@role>`\n`m!ticket_settings message <'message'>`\n`m!ticket_settings enable`\n`m!ticket_settings disable`\n",inline=False)
         embed.add_field(name="Suggest Setup Commands", value="`m!suggest_settings channel <#channel>`\n`m!suggest_settings enable`\n`m!suggest_settings disable`\n",inline=False)
         embed.add_field(name="Welcome Setup Commands", value="`m!welcome_settings channel <#channel>`\n`m!welcome_settings enable`\n`m!welcome_settings disable`\n",inline=False)
-        embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`",inline=False)
-        embed.add_field(name="Verify Setup Commands", value="`m!setup_verification <@role>`\n`m!disable_verification`\n`m!enable_verification`",inline=False)
+        embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`",inline=False)
+        embed.add_field(name="Verify Setup Commands", value="`m!verify_proccess setup <@role>`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",inline=False)
 
         embed.set_footer(text="Programmed by GoddlyGut#0001")
         embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)
@@ -50,8 +50,8 @@ class help(commands.Cog):
             embed.add_field(name="Ticket Setup Commands", value="`m!ticket_settings role <@role>`\n`m!ticket_settings message <'message'>`\n`m!ticket_settings enable`\n`m!ticket_settings disable`\n",inline=False)
             embed.add_field(name="Suggest Setup Commands", value="`m!suggest_settings channel <#channel>`\n`m!suggest_settings enable`\n`m!suggest_settings disable`\n",inline=False)
             embed.add_field(name="Welcome Setup Commands", value="`m!welcome_settings channel <#channel>`\n`m!welcome_settings enable`\n`m!welcome_settings disable`\n",inline=False)
-            embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`",inline=False)
-            embed.add_field(name="Verify Setup Commands", value="`m!setup_verification <@role>`\n`m!disable_verification`\n`m!enable_verification`",inline=False)
+            embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`",inline=False)
+            embed.add_field(name="Verify Setup Commands", value="`m!verify_proccess setup <@role>`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",inline=False)
 
             embed.set_footer(text="Programmed by GoddlyGut#0001")
             embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)

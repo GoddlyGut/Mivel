@@ -85,7 +85,7 @@ class suggestions(commands.Cog):
         embed=nextcord.Embed(
             title="Suggest Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`[m!]suggest_settings channel <#channel>`\n`[m!]suggest_settings disable`\n`[m!]suggest_settings enable`"
+            description="Available Setup Commands: \n`m!suggest_settings channel <#channel>`\n`m!suggest_settings disable`\n`m!suggest_settings enable`"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)

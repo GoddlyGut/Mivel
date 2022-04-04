@@ -25,7 +25,7 @@ class ticket_system(commands.Cog):
         embed=nextcord.Embed(
             title="Ticket Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`[m!]ticket_settings role <@role>`\n`[m!]ticket_settings message <'message'>`\n`[m!]ticket_settings disable`\n`[m!]ticket_settings enable`"
+            description="Available Setup Commands:\n`m!ticket_settings role <@role>`\n`m!ticket_settings message <'message'>`\n`m!ticket_settings disable`\n`m!ticket_settings enable`"
             
         )
 
@@ -324,6 +324,17 @@ class ticket_system(commands.Cog):
                 msg = await channel.send(embed=embed)
                 await msg.add_reaction("🗑️")
                 await interaction.response.send_message(f"Created message in {channel.mention}", ephemeral=True)
+                
+                
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self,payload):
+        if payload.emoji.name == "🗑️":
+            channel = self.client.get_channel(payload.channel_id)
+            if channel.category.name == "Support-Category":
+                message = await channel.fetch_message(payload.message_id)
+                reaction = get(message.reactions, emoji = payload.emoji.name)
+                if reaction and reaction.count > 1:
+                    await channel.delete()
         
 
 

@@ -36,7 +36,7 @@ client = commands.Bot(command_prefix=prefix, intents=intents)
 
 @client.event
 async def on_ready():
-    # db = sqlite3.connect('in_verification.sqlite')
+    # db = sqlite3.connect('roblox_userid.sqlite')
     # cursor = db.cursor()
     # cursor.execute('''
     #                CREATE TABLE IF NOT EXISTS main(
@@ -49,17 +49,7 @@ async def on_ready():
     client.remove_command('help')
     game = nextcord.Game("Watching Commands")
     await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="Commands"))
-    
-#For ticket system
-@client.event
-async def on_raw_reaction_add(payload):
-    if payload.emoji.name == "🗑️":
-        channel = client.get_channel(payload.channel_id)
-        if channel.category.name == "Support-Category":
-            message = await channel.fetch_message(payload.message_id)
-            reaction = get(message.reactions, emoji = payload.emoji.name)
-            if reaction and reaction.count > 1:
-                await channel.delete()
+
 
 #################################
 
