@@ -13,9 +13,8 @@ class help(commands.Cog):
     def __init__(self, client):
         self.client = client
     
-    testServerId = 907299002586894367
     
-    @nextcord.slash_command(name="help", description="Use this command to get a list of commands!",guild_ids=[testServerId])
+    @nextcord.slash_command(name="help", description="Use this command to get a list of commands!")
     async def help(self, interaction:Interaction):
         embed = nextcord.Embed(
             title="Commands",
@@ -23,11 +22,12 @@ class help(commands.Cog):
         )
         embed.add_field(name="Default Prefix", value="`m!`")
         embed.add_field(name="General Commands", value="`/help`\n`/meme`\n`/ticket`\n`/suggest`\n`/verify`\n",inline=False)
+        embed.add_field(name="Roblox Commands", value="`/roblox-user-search`\n`/roblox-user-info`\n`/other-roblox-user-info`",inline=False)
         embed.add_field(name="Moderation Commands", value="`/ban`\n`/unban`\n`/kick`\n`/timeout`\n`/purge`\n`/purge-member`\n`/lockdown`\n`/unlock`\n",inline=False)
         embed.add_field(name="Ticket Setup Commands", value="`m!ticket_settings role <@role>`\n`m!ticket_settings message <'message'>`\n`m!ticket_settings enable`\n`m!ticket_settings disable`\n",inline=False)
         embed.add_field(name="Suggest Setup Commands", value="`m!suggest_settings channel <#channel>`\n`m!suggest_settings enable`\n`m!suggest_settings disable`\n",inline=False)
         embed.add_field(name="Welcome Setup Commands", value="`m!welcome_settings channel <#channel>`\n`m!welcome_settings enable`\n`m!welcome_settings disable`\n",inline=False)
-        embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`",inline=False)
+        embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`\n`m!server_info setup_group <GroupId>`\n`m!server_info disable_group`",inline=False)
         embed.add_field(name="Verify Setup Commands", value="`m!verify_proccess setup <@role>`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",inline=False)
 
         embed.set_footer(text="Programmed by GoddlyGut#0001")
@@ -46,11 +46,12 @@ class help(commands.Cog):
             )
             embed.add_field(name="Default Prefix", value="`m!`")
             embed.add_field(name="General Commands", value="`/help`\n`/meme`\n`/ticket`\n`/suggest`\n`/verify`\n",inline=False)
+            embed.add_field(name="Roblox Commands", value="`/roblox-user-search`\n`/roblox-user-info`\n`/other-roblox-user-info`",inline=False)
             embed.add_field(name="Moderation Commands", value="`/ban`\n`/unban`\n`/kick`\n`/timeout`\n`/purge`\n`/purge-member`\n`/lockdown`\n`/unlock`\n",inline=False)
             embed.add_field(name="Ticket Setup Commands", value="`m!ticket_settings role <@role>`\n`m!ticket_settings message <'message'>`\n`m!ticket_settings enable`\n`m!ticket_settings disable`\n",inline=False)
             embed.add_field(name="Suggest Setup Commands", value="`m!suggest_settings channel <#channel>`\n`m!suggest_settings enable`\n`m!suggest_settings disable`\n",inline=False)
             embed.add_field(name="Welcome Setup Commands", value="`m!welcome_settings channel <#channel>`\n`m!welcome_settings enable`\n`m!welcome_settings disable`\n",inline=False)
-            embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`",inline=False)
+            embed.add_field(name="Server Stats Setup Commands", value="`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`\n`m!server_info setup_group <GroupId>`\n`m!server_info disable_group`",inline=False)
             embed.add_field(name="Verify Setup Commands", value="`m!verify_proccess setup <@role>`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",inline=False)
 
             embed.set_footer(text="Programmed by GoddlyGut#0001")

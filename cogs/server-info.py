@@ -1,4 +1,5 @@
 from code import interact
+import imp
 from unicodedata import name
 import nextcord
 from nextcord.ext import commands, tasks
@@ -8,6 +9,9 @@ from nextcord.utils import get
 import roblox
 import asyncio
 roblox_client = roblox.Client()
+
+
+
 
 class server_info(commands.Cog):
     def __init__(self, client):
@@ -19,7 +23,7 @@ class server_info(commands.Cog):
         embed=nextcord.Embed(
             title="Server Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`",
+            description="Available Setup Commands: \n`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`\n`m!server_info setup_group <GroupId>`\n`m!server_info disable_group`",
             
         )      
         embed.timestamp = datetime.now()
@@ -75,17 +79,17 @@ class server_info(commands.Cog):
                 else:
                     bot_found = True
                     game_found = True
-                    group_found = False
+                    group_found = True
                     
-                    if result_bot[0] is None:
+                    if result_bot is None:
                         bot_found = False
                     else:
                         if self.client.get_channel(int(result_bot[0])) != None:
-                            category = self.client.get_channel(int(result_bot[0]))
+                            category = self.client.get_channel(int(result_bot[0])).category
                         else:
                             bot_found = False
                             
-                    if result_group[0] is None:
+                    if result_group is None:
                         group_found = False
                     else:
                         if self.client.get_channel(int(result_group[0])) != None:
@@ -93,7 +97,7 @@ class server_info(commands.Cog):
                         else:
                             group_found = False 
                     
-                    if result_game_channel[0] is None:
+                    if result_game_channel is None:
                         game_found = False
                     else:
                         if self.client.get_channel(int(result_game_channel[0])) != None:
@@ -265,16 +269,16 @@ class server_info(commands.Cog):
                     game_found = True
                     group_found = True
                     
-                    if result_member[0] is None:
+                    if result_member is None:
                         member_found = False
                     else:
                         if self.client.get_channel(int(result_member[0])) != None:
-                            category = self.client.get_channel(int(result_member[0]))
+                            category = self.client.get_channel(int(result_member[0])).category
                             
                         else:
                             member_found = False
                             
-                    if result_group[0] is None:
+                    if result_group is None:
                         group_found = False
                     else:
                         if self.client.get_channel(int(result_group[0])) != None:
@@ -283,7 +287,7 @@ class server_info(commands.Cog):
                             group_found = False 
                     
                     
-                    if result_game_channel[0] is None:
+                    if result_game_channel is None:
                         game_found = False
                     else:
                         if self.client.get_channel(int(result_game_channel[0])) != None:
@@ -497,11 +501,11 @@ class server_info(commands.Cog):
                         member_found = False
                     else:             
                         if self.client.get_channel(int(result_member[0])) != None:
-                            category = self.client.get_channel(int(result_member[0]))
+                            category = self.client.get_channel(int(result_member[0])).category
                         else:
                             member_found = False
                          
-                    if result_group[0] is None:
+                    if result_group is None:
                         group_found = False
                     else:
                         if self.client.get_channel(int(result_group[0])) != None:
@@ -509,7 +513,7 @@ class server_info(commands.Cog):
                         else:
                             group_found = False  
                             
-                    if result_bot[0] is None:
+                    if result_bot is None:
                         bot_found = False
                     else:
                         if self.client.get_channel(int(result_bot[0])) != None:
@@ -570,6 +574,18 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
+            
+    @setup_game.error
+    async def game_error(self,ctx, error):
+        embed=nextcord.Embed(
+            title="Error",
+            colour= nextcord.Colour.red(),
+            description=error
+        )
+                    
+        embed.timestamp = datetime.now()
+        
+        await ctx.reply(embed=embed)
     
     @server_info.command()
     async def disable_game(self, ctx):
@@ -711,20 +727,20 @@ class server_info(commands.Cog):
                         member_found = False
                     else:             
                         if self.client.get_channel(int(result_member[0])) != None:
-                            category = self.client.get_channel(int(result_member[0]))
+                            category = self.client.get_channel(int(result_member[0])).category
                         else:
-                            game_found = False
+                            member_found = False
                             
                     if result_game_channel is None:
                         game_found = False
                     else:             
                         if self.client.get_channel(int(result_game_channel[0])) != None:
-                            category = self.client.get_channel(int(result_game_channel[0]))
+                            category = self.client.get_channel(int(result_game_channel[0])).category
                         else:
                             game_found = False
                             
                             
-                    if result_bot[0] is None:
+                    if result_bot is None:
                         bot_found = False
                     else:
                         if self.client.get_channel(int(result_bot[0])) != None:
@@ -735,6 +751,7 @@ class server_info(commands.Cog):
                         
                     if bot_found != True and member_found != True and game_found != True:
                         category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                
                 
                 
                 group_members = group.member_count
@@ -785,6 +802,18 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
+            
+    # @setup_group.error
+    # async def game_error(self,ctx, error):
+    #     embed=nextcord.Embed(
+    #         title="Error",
+    #         colour= nextcord.Colour.red(),
+    #         description=error
+    #     )
+                    
+    #     embed.timestamp = datetime.now()
+        
+    #     await ctx.reply(embed=embed)
     
     @server_info.command()
     async def disable_group(self, ctx):
@@ -948,8 +977,8 @@ class server_info(commands.Cog):
                 
                 text_split_group = channel_group.name.split(": ")
                 
-                if int(group.get_members) != int(text_split_group[1]):
-                    await channel_group.edit(fname="Group: {group.get_members}")
+                if group.get_members != int(text_split_group[1]):
+                    await channel_group.edit(name=f"Group: {group.get_members}")
                     
             
                 

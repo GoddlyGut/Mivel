@@ -12,16 +12,28 @@ from roblox.thumbnails import AvatarThumbnailType
 roblox_client = roblox.Client()
 
 
-testingserver = 907299002586894367
-
 
 class roblox_features(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @nextcord.slash_command(name="roblox-user-search", description="Use this command to search for roblox players!", guild_ids=[testingserver])
+    @nextcord.slash_command(name="roblox-user-search", description="Use this command to search for roblox players!")
     async def roblox_user_search(self, interaction: Interaction, username=str):
-        user = await roblox_client.get_user_by_username(username, expand=True)
+        try:
+            user = await roblox_client.get_user_by_username(username, expand=True)
+        except:
+            error_embed = Embed(
+                title="Error",
+                color=nextcord.Colour.red(),
+                description="User not found!"
+            )
+            
+            error_embed.timestamp = datetime.now()
+            
+            await interaction.response.send_message(embed=error_embed)
+            return
+
+        
         # status = await user.get_status()
 
         embed = Embed(title=f"Info for {user.name}")
@@ -37,30 +49,27 @@ class roblox_features(commands.Cog):
             name="User ID",
             value="`" + str(user.id) + "`"
         )
+        
+        embed.add_field(
+            name="Date Created",
+            value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
+        )
         embed.add_field(
             name="Description",
             value="```" +
             (nextcord.utils.escape_markdown(
-                user.description or "No description")) + "```"
+                user.description or "No description")) + "```",
+            inline=False
         )
+
+        embed.color = nextcord.Color.blurple()
 
         embed.timestamp = datetime.now()
 
         await interaction.response.send_message(embed=embed)
 
-    @roblox_user_search.error
-    async def roblox_user_search_error(self, ctx, error):
-        error_embed = Embed(
-            title="Error",
-            color=nextcord.Colour.red(),
-            description=error
-        )
-
-        error_embed.timestamp = datetime.now()
-
-        await ctx.send(embed=error_embed)
         
-    @nextcord.slash_command(name="roblox-user-info", description="This command prints your roblox user information", guild_ids=[testingserver])
+    @nextcord.slash_command(name="roblox-user-info", description="This command prints your roblox user information")
     async def roblox_user_info(self, interaction:Interaction):
         db_roblox_userid = sqlite3.connect('roblox_userid.sqlite')
         cursor_roblox_userid = db_roblox_userid.cursor()
@@ -85,21 +94,28 @@ class roblox_features(commands.Cog):
                 name="User ID",
                 value="`" + str(user.id) + "`"
             )
+            
+            embed.add_field(
+                name="Date Created",
+                value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
+            )
+            
             embed.add_field(
                 name="Description",
                 value="```" +
                 (nextcord.utils.escape_markdown(
-                    user.description or "No description")) + "```"
+                    user.description or "No description")) + "```",
+                inline=False
             )
-            
+            embed.color = nextcord.Color.blurple()
 
             embed.timestamp = datetime.now()
 
             await interaction.response.send_message(embed=embed)
             
             
-    @nextcord.slash_command(name="other-roblox-user-info", description="This command prints a users roblox user information", guild_ids=[testingserver])
-    async def roblox_user_info(self, interaction:Interaction, member:Member=SlashOption(required=True)):
+    @nextcord.slash_command(name="other-roblox-user-info", description="This command prints a users roblox user information")
+    async def roblox_other_info(self, interaction:Interaction, member:Member=SlashOption(required=True)):
         db_roblox_userid = sqlite3.connect('roblox_userid.sqlite')
         cursor_roblox_userid = db_roblox_userid.cursor()
         cursor_roblox_userid.execute(f"SELECT roblox_user_id FROM main WHERE user_id = {member.id}")
@@ -123,12 +139,22 @@ class roblox_features(commands.Cog):
                 name="User ID",
                 value="`" + str(user.id) + "`"
             )
+            
+            embed.add_field(
+                name="Date Created",
+                value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
+            )
             embed.add_field(
                 name="Description",
                 value="```" +
                 (nextcord.utils.escape_markdown(
-                    user.description or "No description")) + "```"
+                    user.description or "No description")) + "```",
+                inline=False
             )
+            
+            embed.color = nextcord.Color.blurple()
+            
+
             
 
             embed.timestamp = datetime.now()
@@ -315,7 +341,7 @@ class roblox_features(commands.Cog):
 
             await ctx.reply(embed=embed_error_perms)
 
-    @nextcord.slash_command(name="verify", description="Use this command to link your roblox account with your discord account!", guild_ids=[testingserver])
+    @nextcord.slash_command(name="verify", description="Use this command to link your roblox account with your discord account!")
     async def verify(self, interaction: Interaction):
         db = sqlite3.connect('verify.sqlite')
         cursor = db.cursor()
@@ -337,14 +363,12 @@ class roblox_features(commands.Cog):
         result_roblox_userid = cursor_roblox_userid.fetchone()
 
         def check(m):
-            return interaction.user == m.author
-        print(result_role)
+            return interaction.user == m.au
 
         if result_role != None:
             if result[0] is None or result[0] == "True":
                 role = nextcord.utils.get(
                     interaction.guild.roles, id=int(result_role[0]))
-                print(result_verification)
                 
                 if result_verification is None or result_verification[0] == "False" or result_verification[0] is None:
 
