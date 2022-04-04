@@ -79,7 +79,7 @@ class server_info(commands.Cog):
                 else:
                     bot_found = True
                     game_found = True
-                    group_found = False
+                    group_found = True
                     
                     if result_bot[0] is None:
                         bot_found = False
@@ -953,7 +953,7 @@ class server_info(commands.Cog):
                 text_split_group = channel_group.name.split(": ")
                 
                 if group.get_members != int(text_split_group[1]):
-                    await channel_group.edit(fname="Group: {group.get_members}")
+                    await channel_group.edit(name=f"Group: {group.get_members}")
                     
             
                 
