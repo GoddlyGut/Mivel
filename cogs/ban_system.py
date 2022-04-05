@@ -15,7 +15,7 @@ class ban_system(commands.Cog):
 
 
     @nextcord.slash_command(name="kick",description="Use this command to kick members!")
-    async def kick(self, interaction: Interaction,member: Member = nextcord.SlashOption(required=True),time:int=nextcord.SlashOption(required=True),reason:str=nextcord.SlashOption(required=True)):
+    async def kick(self, interaction: Interaction,member: Member = nextcord.SlashOption(required=True),reason:str=nextcord.SlashOption(required=True)):
         if interaction.user.guild_permissions.kick_members:
             if member.name != interaction.user.name:
                 await member.kick(reason=reason)

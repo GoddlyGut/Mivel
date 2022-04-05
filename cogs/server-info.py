@@ -81,7 +81,7 @@ class server_info(commands.Cog):
                     game_found = True
                     group_found = True
                     
-                    if result_bot is None:
+                    if result_bot is None or result_bot[0] is None:
                         bot_found = False
                     else:
                         if self.client.get_channel(int(result_bot[0])) != None:
@@ -89,7 +89,7 @@ class server_info(commands.Cog):
                         else:
                             bot_found = False
                             
-                    if result_group is None:
+                    if result_group is None or result_group[0] is None:
                         group_found = False
                     else:
                         if self.client.get_channel(int(result_group[0])) != None:
@@ -97,7 +97,7 @@ class server_info(commands.Cog):
                         else:
                             group_found = False 
                     
-                    if result_game_channel is None:
+                    if result_game_channel is None or result_game_channel[0] is None:
                         game_found = False
                     else:
                         if self.client.get_channel(int(result_game_channel[0])) != None:
@@ -269,7 +269,7 @@ class server_info(commands.Cog):
                     game_found = True
                     group_found = True
                     
-                    if result_member is None:
+                    if result_member is None or result_member[0] is None:
                         member_found = False
                     else:
                         if self.client.get_channel(int(result_member[0])) != None:
@@ -278,7 +278,7 @@ class server_info(commands.Cog):
                         else:
                             member_found = False
                             
-                    if result_group is None:
+                    if result_group is None or result_group[0] is None:
                         group_found = False
                     else:
                         if self.client.get_channel(int(result_group[0])) != None:
@@ -287,7 +287,7 @@ class server_info(commands.Cog):
                             group_found = False 
                     
                     
-                    if result_game_channel is None:
+                    if result_game_channel is None or result_game_channel[0] is None:
                         game_found = False
                     else:
                         if self.client.get_channel(int(result_game_channel[0])) != None:
@@ -497,7 +497,7 @@ class server_info(commands.Cog):
                     member_found = True
                     bot_found = True
                     group_found = True
-                    if result_member is None:
+                    if result_member is None or result_member[0] is None:
                         member_found = False
                     else:             
                         if self.client.get_channel(int(result_member[0])) != None:
@@ -505,7 +505,7 @@ class server_info(commands.Cog):
                         else:
                             member_found = False
                          
-                    if result_group is None:
+                    if result_group is None or result_group[0] is None:
                         group_found = False
                     else:
                         if self.client.get_channel(int(result_group[0])) != None:
@@ -513,7 +513,7 @@ class server_info(commands.Cog):
                         else:
                             group_found = False  
                             
-                    if result_bot is None:
+                    if result_bot is None or result_bot[0] is None:
                         bot_found = False
                     else:
                         if self.client.get_channel(int(result_bot[0])) != None:
@@ -575,17 +575,17 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-    @setup_game.error
-    async def game_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
+    # @setup_game.error
+    # async def game_error(self,ctx, error):
+    #     embed=nextcord.Embed(
+    #         title="Error",
+    #         colour= nextcord.Colour.red(),
+    #         description=error
+    #     )
                     
-        embed.timestamp = datetime.now()
+    #     embed.timestamp = datetime.now()
         
-        await ctx.reply(embed=embed)
+    #     await ctx.reply(embed=embed)
     
     @server_info.command()
     async def disable_game(self, ctx):
@@ -723,7 +723,7 @@ class server_info(commands.Cog):
                     
                     
                     
-                    if result_member is None:
+                    if result_member is None or result_member[0] is None:
                         member_found = False
                     else:             
                         if self.client.get_channel(int(result_member[0])) != None:
@@ -731,7 +731,7 @@ class server_info(commands.Cog):
                         else:
                             member_found = False
                             
-                    if result_game_channel is None:
+                    if result_game_channel is None or result_game_channel[0] is None:
                         game_found = False
                     else:             
                         if self.client.get_channel(int(result_game_channel[0])) != None:
@@ -740,7 +740,7 @@ class server_info(commands.Cog):
                             game_found = False
                             
                             
-                    if result_bot is None:
+                    if result_bot is None or result_bot[0] is None:
                         bot_found = False
                     else:
                         if self.client.get_channel(int(result_bot[0])) != None:
