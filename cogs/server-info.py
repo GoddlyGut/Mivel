@@ -65,7 +65,7 @@ class server_info(commands.Cog):
                 embed=nextcord.Embed(
                     title="Server Info Updated",
                     colour= nextcord.Colour.blurple(),
-                    description=f'Server Info Channel Created! Note that the channel updates every 30 minutes.'
+                    description=f'Server Info Member Channel Created! Note that the channel updates every 30 minutes.'
                 )
                 
                 embed.timestamp = datetime.now()
@@ -482,7 +482,7 @@ class server_info(commands.Cog):
                 embed=nextcord.Embed(
                     title="Server Info Updated",
                     colour= nextcord.Colour.blurple(),
-                    description=f'Server Info Bot Channel Created! Note that the channel updates every 30 minutes.'
+                    description=f'Server Info Game Channel Created! Note that the channel updates every 30 minutes.'
                 )
                 
                 embed.timestamp = datetime.now()
