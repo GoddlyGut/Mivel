@@ -521,6 +521,42 @@ class roblox_features(commands.Cog):
 
                                             await msg_confirm.reply(embed=embed_success_two)
 
+
+                                            
+                                            embed_updated = Embed(title=f"Info for {username.name}")
+                                            embed_updated.add_field(
+                                                name="Username",
+                                                value="`" + username.name + "`"
+                                            )
+                                            embed_updated.add_field(
+                                                name="Display Name",
+                                                value="`" + username.display_name + "`"
+                                            )
+                                            embed_updated.add_field(
+                                                name="User ID",
+                                                value="`" + str(username.id) + "`"
+                                            )
+                                            
+                                            embed_updated.add_field(
+                                                name="Date Created",
+                                                value="`"+username.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
+                                            )
+                                            embed_updated.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={username.id}&width=420&height=420&format=png")
+
+                                            embed_updated.add_field(
+                                                name="Description",
+                                                value="```" +
+                                                (nextcord.utils.escape_markdown(
+                                                    username.description or "No description")) + "```",
+                                                inline=False
+                                            )
+
+                                            embed_updated.color = nextcord.Color.green()
+
+                                            embed_updated.timestamp = datetime.now()
+
+                                            await msg_confirm.channel.send(embed=embed_updated)
+
   
 
                                             cursor_verification_updated = db_verification.cursor()
