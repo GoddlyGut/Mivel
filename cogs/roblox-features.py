@@ -54,6 +54,8 @@ class roblox_features(commands.Cog):
             name="Date Created",
             value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
         )
+        embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
+
         embed.add_field(
             name="Description",
             value="```" +
@@ -99,6 +101,8 @@ class roblox_features(commands.Cog):
                 name="Date Created",
                 value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
             )
+
+            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
             
             embed.add_field(
                 name="Description",
@@ -144,6 +148,8 @@ class roblox_features(commands.Cog):
                 name="Date Created",
                 value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
             )
+            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
+
             embed.add_field(
                 name="Description",
                 value="```" +
