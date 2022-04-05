@@ -363,11 +363,7 @@ class roblox_features(commands.Cog):
         result_roblox_userid = cursor_roblox_userid.fetchone()
 
         def check(m):
-<<<<<<< HEAD
             return interaction.user == m.author
-=======
-            return interaction.user == m.au
->>>>>>> aa5f0954c2dd112317c80d97175a8ffea795b161
 
         if result_role != None:
             if result[0] is None or result[0] == "True":
