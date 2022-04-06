@@ -1,3 +1,4 @@
 nextcord==2.0.0a10
 roblox==2.0.0
 pymongo==3.12.3
+dnspython==2.2.1
