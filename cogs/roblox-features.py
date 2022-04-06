@@ -183,7 +183,7 @@ class roblox_features(commands.Cog):
         embed = nextcord.Embed(
             title="Server Info",
             colour=nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!verify_proccess setup`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",
+            description="Available Setup Commands: \n`m!verify_proccess setup <@role>`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",
 
         )
         embed.timestamp = datetime.now()

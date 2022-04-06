@@ -14,7 +14,7 @@ class welcome_system(commands.Cog):
         embed=nextcord.Embed(
             title="Welcome Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`m!welcome_settings channel <#channel>`\n`m!welcome_settings message <'message'>`\n`m!welcome_settings disable`\n`m!welcome_settings enable`"
+            description="Available Setup Commands:\n`m!welcome_settings channel <#channel>`\n`m!welcome_settings message <'Message'>`\n`m!welcome_settings disable`\n`m!welcome_settings enable`"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
