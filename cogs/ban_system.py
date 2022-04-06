@@ -1,4 +1,3 @@
-from unicodedata import name
 import nextcord
 from nextcord import Guild, Member, member
 from nextcord.ext import commands

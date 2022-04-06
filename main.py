@@ -2,7 +2,6 @@ import nextcord
 from nextcord.ext import commands
 import os
 import json
-import sqlite3
 from nextcord.utils import get
 
 

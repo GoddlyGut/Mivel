@@ -1,12 +1,9 @@
-import sqlite3
 from nextcord.ext import commands
 import nextcord
-import os
-import json
-from nextcord import Embed, Role, TextChannel, embeds
-from nextcord.abc import GuildChannel
-from nextcord import Interaction, SlashOption, ChannelType
+from nextcord import Interaction
 from datetime import datetime
+import pymongo
+from pymongo import MongoClient
 
 class suggestions(commands.Cog):
     def __init__(self, client):
@@ -18,19 +15,31 @@ class suggestions(commands.Cog):
     @nextcord.slash_command(name="suggest",description="Use this command to send a suggestion!")
     async def suggest(self, interaction: Interaction, suggestion = nextcord.SlashOption(description="Please fill out a suggestion here!", required=True)):
         
-        db = sqlite3.connect('suggest.sqlite')
-        cursor = db.cursor()
-        cursor.execute(f"SELECT channel_id FROM main WHERE guild_id = {interaction.guild.id}")
-        result = cursor.fetchone()
         
-        cursor_enabled = db.cursor()
-        cursor_enabled.execute(f"SELECT Enabled FROM main WHERE guild_id = {interaction.guild.id}")
-        result_enabled = cursor_enabled.fetchone()
+        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        cluster = MongoClient(mongo_url)
+        db = cluster["database"]
+        collection = db["suggestion_collection"]
+            
+        channel = None
+
+        #{},{"_id":1, "channel":1, "message":1, "enabled":1}
+        for x in collection.find({"_id": interaction.guild.id}):
+            channel = x["channel"]
+            enabled = x["enabled"]
         
-        if result is None:
-            await interaction.response.send_message("Please finish setting up the suggestion bot!", ephemeral=True)
+        if channel is None:
+            embed_error=nextcord.Embed(
+                title="Error",
+                colour= nextcord.Colour.red(),
+                description=f'Please finish setting up the suggestion system!'
+            )
+                
+            embed_error.timestamp = datetime.now()
+                
+            await interaction.response.send_message(embed=embed_error, ephemeral=True)
         else:
-            if result_enabled[0] == "False":
+            if enabled == False:
                 embed_not_enabled=nextcord.Embed(
                     title="Suggestion System",
                     colour= nextcord.Colour.red(),
@@ -41,43 +50,32 @@ class suggestions(commands.Cog):
         
                 await interaction.response.send_message(embed=embed_not_enabled, ephemeral=True)
             else: 
-                if result[0] is None:
-                    embed_error=nextcord.Embed(
-                        title="Error",
-                        colour= nextcord.Colour.red(),
-                        description="Please setup the ticket bot before use!"
-                    )
+                channel_val = self.client.get_channel(int(channel)) #suggestion-channel
+                embed=nextcord.Embed(
+                    title="Suggestion",
+                    colour= nextcord.Colour.blurple()
+                 )
                         
-                    embed_error.timestamp = datetime.now()
-            
-                    await interaction.response.send_message(embed=embed_error, ephemeral=True)
-                else:
-                    channel = self.client.get_channel(int(result[0])) #suggestion-channel
-                    embed=nextcord.Embed(
-                        title="Suggestion",
-                        colour= nextcord.Colour.blurple()
-                    )
-                        
-                    embed.set_footer(text="Type /suggest to send a suggestion!")
-                    embed.add_field(name="User", value=interaction.user.mention,inline=False)
-                    embed.add_field(name="Suggestion Text", value=suggestion, inline=False)
+                embed.set_footer(text="Type /suggest to send a suggestion!")
+                embed.add_field(name="User", value=interaction.user.mention,inline=False)
+                embed.add_field(name="Suggestion Text", value=suggestion, inline=False)
                     
                     
                     
-                    msg = await channel.send(embed=embed)
-                    await msg.add_reaction("✅")
-                    await msg.add_reaction("❌")
+                msg = await channel_val.send(embed=embed)
+                await msg.add_reaction("✅")
+                await msg.add_reaction("❌")
                     
                     
-                    embed_success=nextcord.Embed(
-                        title="Suggestion Sent",
-                        colour= nextcord.Colour.green(),
-                        description=f"Suggestion submitted to {channel.mention}"
-                    )
+                embed_success=nextcord.Embed(
+                    title="Suggestion Sent",
+                    colour= nextcord.Colour.green(),
+                    description=f"Suggestion submitted to {channel_val.mention}"
+                )
                             
-                    embed_success.timestamp = datetime.now()
+                embed_success.timestamp = datetime.now()
                         
-                    await interaction.response.send_message(embed=embed_success, ephemeral=True)
+                await interaction.response.send_message(embed=embed_success, ephemeral=True)
     
     
     @commands.group(invoke_without_command=True)
@@ -94,12 +92,24 @@ class suggestions(commands.Cog):
     async def channel(self, ctx, channel:nextcord.TextChannel):
         if ctx.message.author.guild_permissions.manage_messages:
 
-            db = sqlite3.connect('suggest.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
-                
-                
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["suggestion_collection"]
+            
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                enabled = x["enabled"]
+            
+            
+            welcome_info = {"_id":ctx.guild.id, "channel":channel.id, "enabled": True}
+            
+            try:
+                collection.insert_one(welcome_info)
+            except:
+                collection.update({"_id":ctx.guild.id},{"$set":{"channel":channel.id}})
+            
+            
             embed=nextcord.Embed(
                 title="Suggest Info Updated",
                 colour= nextcord.Colour.green(),
@@ -107,19 +117,9 @@ class suggestions(commands.Cog):
             )
                     
             embed.timestamp = datetime.now()
+            
+            await ctx.reply(embed=embed)
                 
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, channel_id) VALUES(?,?)")
-                val = (ctx.guild.id, channel.id)
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET channel_id = ? WHERE guild_id = ?")
-                val = (channel.id, ctx.guild.id)
-                await ctx.reply(embed=embed)
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
         else:
             embed_error_perms=nextcord.Embed(
                 title="Error",
@@ -149,10 +149,33 @@ class suggestions(commands.Cog):
     async def disable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
-            db = sqlite3.connect('suggest.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["suggestion_collection"]
+                
+            channel = None
+
+            #{},{"_id":1, "channel":1, "message":1, "enabled":1}
+            for x in collection.find({"_id": ctx.guild.id}):
+                channel = x["channel"]
+                enabled = x["enabled"]
+            
+            
+            if channel is None:
+                embed_error=nextcord.Embed(
+                    title="Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Please finish setting up the suggestion system!'
+                )
+                
+                embed_error.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed_error)
+                return
+            else:
+                collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":False}})
+            
 
             embed=nextcord.Embed(
                 title="Suggest Settings Updated",
@@ -162,19 +185,7 @@ class suggestions(commands.Cog):
             
             embed.timestamp = datetime.now()
             
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, Enabled) VALUES(?,?)")
-                val = (ctx.guild.id, "False")
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET Enabled = ? WHERE guild_id = ?")
-                val = ("False", ctx.guild.id)
-                await ctx.reply(embed=embed)
-                
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
+            await ctx.reply(embed=embed)
         else:
             
             embed_error_perms=nextcord.Embed(
@@ -191,10 +202,33 @@ class suggestions(commands.Cog):
     async def enable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
-            db = sqlite3.connect('suggest.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["suggestion_collection"]
+                
+            channel = None
+
+            #{},{"_id":1, "channel":1, "message":1, "enabled":1}
+            for x in collection.find({"_id": ctx.guild.id}):
+                channel = x["channel"]
+                enabled = x["enabled"]
+            
+            
+            if channel is None:
+                embed_error=nextcord.Embed(
+                    title="Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Please finish setting up the suggestion system!'
+                )
+                
+                embed_error.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed_error)
+                return
+            else:
+                collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":True}})
+            
 
             embed=nextcord.Embed(
                 title="Suggest Settings Updated",
@@ -204,19 +238,7 @@ class suggestions(commands.Cog):
             
             embed.timestamp = datetime.now()
             
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, Enabled) VALUES(?,?)")
-                val = (ctx.guild.id, "True")
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET Enabled = ? WHERE guild_id = ?")
-                val = ("True", ctx.guild.id)
-                await ctx.reply(embed=embed)
-                
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
+            await ctx.reply(embed=embed)
         else:
             
             embed_error_perms=nextcord.Embed(
