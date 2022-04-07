@@ -1,5 +1,3 @@
-from pydoc import describe
-from turtle import title
 import nextcord
 from nextcord.ext import commands
 import os

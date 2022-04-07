@@ -1,6 +1,3 @@
-from cgitb import text
-from http import client
-from unicodedata import name
 from nextcord import Embed, Member
 from nextcord.ext import commands
 import nextcord

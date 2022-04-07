@@ -1,5 +1,3 @@
-from code import interact
-from unicodedata import name
 import nextcord
 from nextcord.ext import commands, tasks
 from datetime import datetime
