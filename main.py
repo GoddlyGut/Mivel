@@ -2,7 +2,6 @@ import nextcord
 from nextcord.ext import commands
 import os
 import json
-import sqlite3
 from nextcord.utils import get
 
 
@@ -22,6 +21,7 @@ else:
 
 
 TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+#TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
 
 #TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -48,7 +48,7 @@ async def on_ready():
     print("Bot is ready.")
     client.remove_command('help')
     game = nextcord.Game("Watching Commands")
-    await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="Commands"))
+    await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="/help"))
 
 
 #################################

@@ -1,14 +1,14 @@
 from code import interact
-import imp
 from unicodedata import name
 import nextcord
 from nextcord.ext import commands, tasks
 from datetime import datetime
-import sqlite3
 from nextcord.utils import get
 import roblox
-import asyncio
-roblox_client = roblox.Client()
+
+roblox_client = roblox.Client("6E2C0CF7F4F7E2DCB1709C167EF155C4DCF29DCA9D9F2B91D9908D28B091941597004A87F31D06522D8BFAE02550F523549B290EEA74A2BB0FC9DC47B5818FA1625230B9C2D3F5C51DE9353670E1F5C34FE6D30A61E28EA6E4E7207C75D3BBBDA2956AAF252624EB2FAABA55F0986971AD106E8132ACCBB3C233F003B44BD55EEC52AE97843AD825B527BF29EA849115F7EFE9C3AEE89901BBE7CEB312FED484D9F633882C03111A6757E44C887845291CB3EB639ACFFD6CAE46554B76C8901A290C1BB20A11446C283C2145C3A2DC428399E5B4C6FA1E96331F9058B662734CD7254223304A56115A26216B1292216888383DED91236A6EAE291D85B7D6BA1AE020344B645A83D8C52B691FA3E82415794C4C9C198A97BAFFEE4733A6ECFCE8ED17296E455E7FBE10A5144555023E6BBA36708047CAEC2E016B4369CBFC9B54E333C2F4C27202F0F009A2EB51F6FAE5845F12CE1F3FF20AAC885B8BAD8D16AD473E9A3F")
+import pymongo
+from pymongo import MongoClient
 
 
 
@@ -23,45 +23,67 @@ class server_info(commands.Cog):
         embed=nextcord.Embed(
             title="Server Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <UniverseId>`\n`m!server_info disable_game`\n`m!server_info setup_group <GroupId>`\n`m!server_info disable_group`",
+            description="Available Setup Commands: \n`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <PlaceId>`\n`m!server_info disable_game`\n`m!server_info setup_group <GroupId>`\n`m!server_info disable_group`\n`m!server_info setup_favorites <PlaceId>`\n`m!server_info disable_favorites`",
             
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
+
     
     
     
     @server_info.command()
     async def setup_members(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT member_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
             
-            cursor_bot = db.cursor()
-            cursor_bot.execute(f"SELECT bot_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_bot = cursor_bot.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            cursor_game_channel = db.cursor()
-            cursor_game_channel.execute(f"SELECT game_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_game_channel = cursor_game_channel.fetchone()
-
-            cursor_group = db.cursor()
-            cursor_group.execute(f"SELECT group_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_group = cursor_group.fetchone()
+            member_channel = None
+            bot_channel = None
+            game_channel = None
+            group_channel = None
+            game_favorite_channel = None
             
-            if result != None:
-                if result[0] is None:
-                    channel_found = None
-                else:
-                    channel_found = self.client.get_channel(int(result[0]))
-            else:
-                channel_found = None 
-            
-            if channel_found is None:
-
-
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
+                
+            if member_channel is None:
+                overwrites={
+                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                }
+                 
+                if bot_channel is None and game_channel is None and group_channel is None and game_favorite_channel is None:    
+                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                else: 
+                    if bot_channel != None:
+                        category = self.client.get_channel(bot_channel).category
+                        
+                    if game_channel != None:
+                        category = self.client.get_channel(game_channel).category
+                        
+                    if group_channel != None:
+                        category = self.client.get_channel(group_channel).category
+                        
+                    if game_favorite_channel != None:
+                        category = self.client.get_channel(game_favorite_channel).category
+                        
+                        
+                channel = await ctx.guild.create_voice_channel(name=f"Members: {ctx.guild.member_count}", category=category)
+                
+                channel_info = {"_id":ctx.guild.id, "member_channel":channel.id, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}
+                
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"member_channel":channel.id}})
+                    
                 embed=nextcord.Embed(
                     title="Server Info Updated",
                     colour= nextcord.Colour.blurple(),
@@ -70,74 +92,7 @@ class server_info(commands.Cog):
                 
                 embed.timestamp = datetime.now()
                 
-                overwrites={
-                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
-                }
-                            
-                if result_bot is None and result_game_channel is None and result_group is None:    
-                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                else:
-                    bot_found = True
-                    game_found = True
-                    group_found = True
-                    
-                    if result_bot is None or result_bot[0] is None:
-                        bot_found = False
-                    else:
-                        if self.client.get_channel(int(result_bot[0])) != None:
-                            category = self.client.get_channel(int(result_bot[0])).category
-                        else:
-                            bot_found = False
-                            
-                    if result_group is None or result_group[0] is None:
-                        group_found = False
-                    else:
-                        if self.client.get_channel(int(result_group[0])) != None:
-                            category = self.client.get_channel(int(result_group[0])).category
-                        else:
-                            group_found = False 
-                    
-                    if result_game_channel is None or result_game_channel[0] is None:
-                        game_found = False
-                    else:
-                        if self.client.get_channel(int(result_game_channel[0])) != None:
-                            category = self.client.get_channel(int(result_game_channel[0])).category
-                        else:
-                            game_found = False
-                        
-                    if game_found != True and bot_found != True and group_found != True:
-                        category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                    
-                    
-                    # if result_bot[0] != None or result_game_channel[0] != None:
-                    #     if self.client.get_channel(int(result_bot[0])) is None and self.client.get_channel(int(result_game_channel[0])) is None:
-                    #         category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                    #     elif self.client.get_channel(int(result_bot[0])) != None:
-                    #         category = self.client.get_channel(int(result_bot[0])).category
-                    #     elif self.client.get_channel(int(result_game_channel[0])) != None:
-                    #         category = self.client.get_channel(int(result_game_channel[0])).categor
-                    # else:
-                    #     category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                
-                
-                channel = await ctx.guild.create_voice_channel(name=f"Members: {ctx.guild.member_count}", category=category)
-                
-                if result is None:
-                    sql = ("INSERT INTO main(guild_id, member_channel_id) VALUES(?,?)")
-                    val = (ctx.guild.id, channel.id)
-                    await ctx.reply(embed=embed)
-                elif result is not None:
-                    sql = ("UPDATE main SET member_channel_id = ? WHERE guild_id = ?")
-                    val = (channel.id, ctx.guild.id)
-                    await ctx.reply(embed=embed)
-                    
-
-                    
-                cursor.execute(sql, val)
-                db.commit()
-                cursor.close()
-                db.close()
-                
+                await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
                     title="Server Info Error",
@@ -156,48 +111,38 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-    
+    @setup_members.error
+    async def members_error(self,ctx, error):
+        embed=nextcord.Embed(
+            title="Error",
+            colour= nextcord.Colour.red(),
+            description=error
+        )
+                    
+        embed.timestamp = datetime.now()
+        
+        await ctx.reply(embed=embed)
+            
+            
+            
     @server_info.command()
     async def disable_members(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT member_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            if result != None:
-                if result[0] != None:
-                    channel = self.client.get_channel(int(result[0]))
-                else:
-                    channel = None
-                
-            else:
-                channel = None
+            member_channel = None
             
-            if channel != None:
-                embed=nextcord.Embed(
-                    title="Server Info Disabled",
-                    colour= nextcord.Colour.blurple(),
-                    description=f'Server Info has been disabled!'
-                )
-                
-                embed.timestamp = datetime.now()
-                    
-
-        
-                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
                 
                 
-                
-                
-                
-                await channel.delete()
-                all_channels = channel_category.channels
-                if len(all_channels) == 0:
-                    await channel_category.delete()
-                
-                await ctx.reply(embed=embed)
-            else:
+            if member_channel is None:
                 embed_error_disable=nextcord.Embed(
                     title="Server Info Error",
                     colour= nextcord.Colour.red(),
@@ -206,7 +151,30 @@ class server_info(commands.Cog):
                         
                 embed_error_disable.timestamp = datetime.now()
                 
-                await ctx.reply(embed=embed_error_disable)   
+                await ctx.reply(embed=embed_error_disable)
+            else:
+                channel = self.client.get_channel(member_channel)
+                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
+                await channel.delete()
+                all_channels = channel_category.channels
+                if len(all_channels) == 0:
+                    await channel_category.delete()
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}   
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"member_channel":None}})
+                
+                embed=nextcord.Embed(
+                    title="Server Info Disabled",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Members has been disabled!'
+                )
+                
+                embed.timestamp = datetime.now()    
+                
+                await ctx.reply(embed=embed)
+            
         else:
             embed_error_perms=nextcord.Embed(
                 title="Error",
@@ -218,103 +186,50 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-            
-            
     @server_info.command()
     async def setup_bots(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT bot_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
             
-            cursor_member = db.cursor()
-            cursor_member.execute(f"SELECT member_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_member = cursor_member.fetchone()
-
-            cursor_game_channel = db.cursor()
-            cursor_game_channel.execute(f"SELECT game_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_game_channel = cursor_game_channel.fetchone()
-
-            cursor_group = db.cursor()
-            cursor_group.execute(f"SELECT group_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_group = cursor_group.fetchone()
-
-            if result != None:
-                if result[0] is None:
-                    channel_found = None
-                else:
-                    channel_found = self.client.get_channel(int(result[0]))
-            else:
-                channel_found = None  
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            if channel_found is None:
+            member_channel = None
+            bot_channel = None
+            game_channel = None
+            group_channel = None
+            game_favorite_channel = None
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
                 
-                embed=nextcord.Embed(
-                    title="Server Info Updated",
-                    colour= nextcord.Colour.blurple(),
-                    description=f'Server Info Bot Channel Created! Note that the channel updates every 30 minutes.'
-                )
-                
-                embed.timestamp = datetime.now()
-                
+            if bot_channel is None:
                 overwrites={
                     ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
                 }
-                
-                if result_member is None and result_game_channel is None:    
+                 
+                if member_channel is None and game_channel is None and group_channel is None and game_favorite_channel is None:    
                     category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                else:
-                    member_found = True
-                    game_found = True
-                    group_found = True
-                    
-                    if result_member is None or result_member[0] is None:
-                        member_found = False
-                    else:
-                        if self.client.get_channel(int(result_member[0])) != None:
-                            category = self.client.get_channel(int(result_member[0])).category
-                            
-                        else:
-                            member_found = False
-                            
-                    if result_group is None or result_group[0] is None:
-                        group_found = False
-                    else:
-                        if self.client.get_channel(int(result_group[0])) != None:
-                            category = self.client.get_channel(int(result_group[0])).category
-                        else:
-                            group_found = False 
-                    
-                    
-                    if result_game_channel is None or result_game_channel[0] is None:
-                        game_found = False
-                    else:
-                        if self.client.get_channel(int(result_game_channel[0])) != None:
-                            category = self.client.get_channel(int(result_game_channel[0])).category
-                        else:
-                            game_found = False
-                            
-                    if game_found != True and member_found != True and group_found != True:
-                        category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                else: 
+                    if member_channel != None:
+                        category = self.client.get_channel(member_channel).category
+                        
+                    if game_channel != None:
+                        category = self.client.get_channel(game_channel).category
+                        
+                    if group_channel != None:
+                        category = self.client.get_channel(group_channel).category
+                        
+                    if game_favorite_channel != None:
+                        category = self.client.get_channel(game_favorite_channel).category
                     
                         
-                    
-                    # if result_member[0] != None or result_game_channel[0] != None:
                         
-                    #     if self.client.get_channel(int(result_member[0])) is None and self.client.get_channel(int(result_game_channel[0])) is None:
-                    #         category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                    #     elif self.client.get_channel(int(result_member[0])) != None:
-                    #         category = self.client.get_channel(int(result_member[0])).category
-                    #     elif self.client.get_channel(int(result_game_channel[0])) != None:
-                    #         category = self.client.get_channel(int(result_game_channel[0])).category
-                    # else:
-                    #     category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                
-                
-
-                
-                
                 members = ctx.guild.members
                 bot_count = 0
                 for i in members:
@@ -324,21 +239,22 @@ class server_info(commands.Cog):
                 
                 channel = await ctx.guild.create_voice_channel(name=f"Bots: {bot_count}", category=category)
                 
-                if result is None:
-                    sql = ("INSERT INTO main(guild_id, bot_channel_id) VALUES(?,?)")
-                    val = (ctx.guild.id, channel.id)
-                    await ctx.reply(embed=embed)
-                elif result is not None:
-                    sql = ("UPDATE main SET bot_channel_id = ? WHERE guild_id = ?")
-                    val = (channel.id, ctx.guild.id)
-                    await ctx.reply(embed=embed)
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":channel.id,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}
+                
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"bot_channel":channel.id}})
                     
-
-                    
-                cursor.execute(sql, val)
-                db.commit()
-                cursor.close()
-                db.close()
+                embed=nextcord.Embed(
+                    title="Server Info Updated",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Bot Channel Created! Note that the channel updates every 30 minutes.'
+                )
+                
+                embed.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
                     title="Server Info Error",
@@ -357,54 +273,38 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-    
+            
+    @setup_bots.error
+    async def bots_error(self,ctx, error):
+        embed=nextcord.Embed(
+            title="Error",
+            colour= nextcord.Colour.red(),
+            description=error
+        )
+                    
+        embed.timestamp = datetime.now()
+        
+        await ctx.reply(embed=embed)
+            
+
     @server_info.command()
     async def disable_bots(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT bot_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            if result != None:
-                if result[0] != None:
-                    channel = self.client.get_channel(int(result[0]))
-                else:
-                    channel = None
-                
-            else:
-                channel = None
-                
-                
-                
+            bot_channel = None
             
-            
-            if channel != None:
-            
-                embed=nextcord.Embed(
-                    title="Server Info Disabled",
-                    colour= nextcord.Colour.blurple(),
-                    description=f'Server Info Bots has been disabled!'
-                )
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
                 
-                embed.timestamp = datetime.now()
-                    
-
-                channel = self.client.get_channel(int(result[0]))
-        
-                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
-                
-                
-                
-                
-                
-                await channel.delete()
-                all_channels = channel_category.channels
-                if len(all_channels) == 0:
-                    await channel_category.delete()
-                
-                await ctx.reply(embed=embed)
-            else:
+            if bot_channel is None:
                 embed_error_disable=nextcord.Embed(
                     title="Server Info Error",
                     colour= nextcord.Colour.red(),
@@ -413,7 +313,30 @@ class server_info(commands.Cog):
                         
                 embed_error_disable.timestamp = datetime.now()
                 
-                await ctx.reply(embed=embed_error_disable)   
+                await ctx.reply(embed=embed_error_disable)
+            else:
+                channel = self.client.get_channel(bot_channel)
+                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
+                await channel.delete()
+                all_channels = channel_category.channels
+                if len(all_channels) == 0:
+                    await channel_category.delete()
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}   
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"bot_channel":None}})
+                
+                embed=nextcord.Embed(
+                    title="Server Info Disabled",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Bots has been disabled!'
+                )
+                
+                embed.timestamp = datetime.now()    
+                
+                await ctx.reply(embed=embed)
+            
         else:
             embed_error_perms=nextcord.Embed(
                 title="Error",
@@ -426,21 +349,18 @@ class server_info(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
             
             
-            
-            
-            
-            
     @server_info.command()
     async def setup_game(self, ctx,*, id:int):
         if ctx.author.guild_permissions.administrator:
             try:
-                universe = await roblox_client.get_universe(id)
-                
+                place = await roblox_client.get_place(id)
+
+
             except:
                 embed_error_none=nextcord.Embed(
                     title="Error",
                     colour= nextcord.Colour.red(),
-                    description="No experience found! Make sure it is the `ExperienceId` and not the `PlaceId`!"
+                    description="No place found! Make sure it is the `PlaceId`!"
                 )
                         
                 embed_error_none.timestamp = datetime.now()
@@ -448,37 +368,59 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed_error_none)
                 return
             
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT game_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
-            
-            cursor_game_id = db.cursor()
-            cursor_game_id.execute(f"SELECT game_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_game_id = cursor_game_id.fetchone()
-            
-            cursor_group = db.cursor()
-            cursor_group.execute(f"SELECT group_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_group = cursor_group.fetchone()
-            
-            cursor_member = db.cursor()
-            cursor_member.execute(f"SELECT member_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_member = cursor_member.fetchone()
-            
-            cursor_bot = db.cursor()
-            cursor_bot.execute(f"SELECT bot_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_bot = cursor_bot.fetchone()
+            universe = await roblox_client.get_universe(place.universe.id)
 
-            if result != None:
-                if result[0] is None:
-                    channel_found = None
-                else:
-                    channel_found = self.client.get_channel(int(result[0]))
-            else:
-                channel_found = None  
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            if channel_found is None:
+            member_channel = None
+            bot_channel = None
+            game_channel = None
+            group_channel = None
+            game_favorite_channel = None
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
                 
+            if game_channel is None:
+                overwrites={
+                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                }
+                 
+                if member_channel is None and bot_channel is None and group_channel is None and game_favorite_channel is None:    
+                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                else: 
+                    if member_channel != None:
+                        category = self.client.get_channel(member_channel).category
+                        
+                    if bot_channel != None:
+                        category = self.client.get_channel(bot_channel).category
+                        
+                    if group_channel != None:
+                        category = self.client.get_channel(group_channel).category
+                    
+                    if game_favorite_channel != None:
+                        category = self.client.get_channel(game_favorite_channel).category
+                        
+                        
+
+                game_info = universe.playing
+                channel = await ctx.guild.create_voice_channel(name=f"Players: {game_info}", category=category)
+                
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":channel.id,"game_id":id,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}
+                
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_channel":channel.id}})
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_id":id}})
+                    
                 embed=nextcord.Embed(
                     title="Server Info Updated",
                     colour= nextcord.Colour.blurple(),
@@ -487,80 +429,12 @@ class server_info(commands.Cog):
                 
                 embed.timestamp = datetime.now()
                 
-                overwrites={
-                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
-                }
-                
-                if result_member is None and result_bot is None and result_group is None:    
-                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                else:
-                    member_found = True
-                    bot_found = True
-                    group_found = True
-                    if result_member is None or result_member[0] is None:
-                        member_found = False
-                    else:             
-                        if self.client.get_channel(int(result_member[0])) != None:
-                            category = self.client.get_channel(int(result_member[0])).category
-                        else:
-                            member_found = False
-                         
-                    if result_group is None or result_group[0] is None:
-                        group_found = False
-                    else:
-                        if self.client.get_channel(int(result_group[0])) != None:
-                            category = self.client.get_channel(int(result_group[0])).category
-                        else:
-                            group_found = False  
-                            
-                    if result_bot is None or result_bot[0] is None:
-                        bot_found = False
-                    else:
-                        if self.client.get_channel(int(result_bot[0])) != None:
-                            category = self.client.get_channel(int(result_bot[0])).category
-                        else:
-                            bot_found = False
-                            
-                        
-                    if bot_found != True and member_found != True and group_found != True:
-                        category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                
-                
-                game_info = universe.playing
-                
-                
-                channel = await ctx.guild.create_voice_channel(name=f"Players: {game_info}", category=category)
-                
-                if result is None:
-                    sql = ("INSERT INTO main(guild_id, game_channel_id) VALUES(?,?)")
-                    val = (ctx.guild.id, channel.id)
-                    
-                    
-                    await ctx.reply(embed=embed)
-                elif result is not None:
-                    sql = ("UPDATE main SET game_channel_id = ? WHERE guild_id = ?")
-                    val = (channel.id, ctx.guild.id)
-
-                    
-                    await ctx.reply(embed=embed)
-                    
-                    
-                sql_id = ("UPDATE main SET game_id = ? WHERE guild_id = ?")
-                val_id = (str(id), ctx.guild.id)
-                    
-
-                    
-                cursor.execute(sql, val)
-                cursor_game_id.execute(sql_id, val_id)
-                db.commit()
-                cursor.close()
-                cursor_game_id.close()
-                db.close()
+                await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
                     title="Server Info Error",
                     colour= nextcord.Colour.red(),
-                    description=f'Server Info Game Players has already been setup!'
+                    description=f'Server Info Game has already been setup!'
                 )
                 
                 await ctx.reply(embed=embed_error)
@@ -574,62 +448,36 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-            
-    # @setup_game.error
-    # async def game_error(self,ctx, error):
-    #     embed=nextcord.Embed(
-    #         title="Error",
-    #         colour= nextcord.Colour.red(),
-    #         description=error
-    #     )
+    @setup_game.error
+    async def game_error(self,ctx, error):
+        embed=nextcord.Embed(
+            title="Error",
+            colour= nextcord.Colour.red(),
+            description=error
+        )
                     
-    #     embed.timestamp = datetime.now()
+        embed.timestamp = datetime.now()
         
-    #     await ctx.reply(embed=embed)
-    
+        await ctx.reply(embed=embed)
+            
+            
     @server_info.command()
     async def disable_game(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT game_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            if result != None:
-                if result[0] != None:
-                    channel = self.client.get_channel(int(result[0]))
-                else:
-                    channel = None
-                
-            else:
-                channel = None
+            game_channel = None
             
-            if channel != None:
-            
-                embed=nextcord.Embed(
-                    title="Server Info Disabled",
-                    colour= nextcord.Colour.blurple(),
-                    description=f'Server Info Game Players has been disabled!'
-                )
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
                 
-                embed.timestamp = datetime.now()
-                    
-
-                channel = self.client.get_channel(int(result[0]))
-        
-                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
-                
-                
-                
-                
-                
-                await channel.delete()
-                all_channels = channel_category.channels
-                if len(all_channels) == 0:
-                    await channel_category.delete()
-                
-                await ctx.reply(embed=embed)
-            else:
+            if game_channel is None:
                 embed_error_disable=nextcord.Embed(
                     title="Server Info Error",
                     colour= nextcord.Colour.red(),
@@ -638,7 +486,31 @@ class server_info(commands.Cog):
                         
                 embed_error_disable.timestamp = datetime.now()
                 
-                await ctx.reply(embed=embed_error_disable)   
+                await ctx.reply(embed=embed_error_disable)
+            else:
+                channel = self.client.get_channel(game_channel)
+                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
+                await channel.delete()
+                all_channels = channel_category.channels
+                if len(all_channels) == 0:
+                    await channel_category.delete()
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}   
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_channel":None}})
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_id":None}})
+                
+                embed=nextcord.Embed(
+                    title="Server Info Disabled",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Game has been disabled!'
+                )
+                
+                embed.timestamp = datetime.now()    
+                
+                await ctx.reply(embed=embed)
+            
         else:
             embed_error_perms=nextcord.Embed(
                 title="Error",
@@ -649,9 +521,11 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
+    
             
-            
-            
+
+    
+    
     @server_info.command()
     async def setup_group(self, ctx,*, id:int):
         if ctx.author.guild_permissions.administrator:
@@ -662,46 +536,66 @@ class server_info(commands.Cog):
                 embed_error_none=nextcord.Embed(
                     title="Error",
                     colour= nextcord.Colour.red(),
-                    description="No group found! Make sure it is the group id!"
+                    description="No group found! Make sure it is the `GroupId`!"
                 )
                         
                 embed_error_none.timestamp = datetime.now()
                 
                 await ctx.reply(embed=embed_error_none)
                 return
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT group_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            member_channel = None
+            bot_channel = None
+            game_channel = None
+            group_channel = None
+            game_favorite_channel = None
             
-
-            cursor_game_channel = db.cursor()
-            cursor_game_channel.execute(f"SELECT game_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_game_channel = cursor_game_channel.fetchone()
             
-            cursor_game_id = db.cursor()
-            cursor_game_id.execute(f"SELECT game_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_game_id = cursor_game_id.fetchone()
-            
-            cursor_member = db.cursor()
-            cursor_member.execute(f"SELECT member_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_member = cursor_member.fetchone()
-            
-            cursor_bot = db.cursor()
-            cursor_bot.execute(f"SELECT bot_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result_bot = cursor_bot.fetchone()
-
-            if result != None:
-                if result[0] is None:
-                    channel_found = None
-                else:
-                    channel_found = self.client.get_channel(int(result[0]))
-            else:
-                channel_found = None  
-            
-            if channel_found is None:
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
                 
+                
+            if group_channel is None:
+                overwrites={
+                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                }
+                 
+                if member_channel is None and bot_channel is None and game_channel is None and game_favorite_channel is None:    
+                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                else: 
+                    if member_channel != None:
+                        category = self.client.get_channel(member_channel).category
+                        
+                    if bot_channel != None:
+                        category = self.client.get_channel(bot_channel).category
+                        
+                    if game_channel != None:
+                        category = self.client.get_channel(game_channel).category
+                        
+                    if game_favorite_channel != None:
+                        category = self.client.get_channel(game_favorite_channel).category
+                        
+                        
+
+                group_info = group.member_count
+                channel = await ctx.guild.create_voice_channel(name=f"Group: {group_info}", category=category)
+                
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":channel.id, "group_id":id, "game_favorite_channel":None,"game_favorite_id":None}
+                
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"group_channel":channel.id}})
+                    collection.update({"_id":ctx.guild.id},{"$set":{"group_id":id}})
+                    
                 embed=nextcord.Embed(
                     title="Server Info Updated",
                     colour= nextcord.Colour.blurple(),
@@ -710,85 +604,12 @@ class server_info(commands.Cog):
                 
                 embed.timestamp = datetime.now()
                 
-                overwrites={
-                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
-                }
-                
-                if result_member is None and result_bot is None and result_game_channel is None:    
-                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                else:
-                    member_found = True
-                    game_found = True
-                    bot_found = True
-                    
-                    
-                    
-                    if result_member is None or result_member[0] is None:
-                        member_found = False
-                    else:             
-                        if self.client.get_channel(int(result_member[0])) != None:
-                            category = self.client.get_channel(int(result_member[0])).category
-                        else:
-                            member_found = False
-                            
-                    if result_game_channel is None or result_game_channel[0] is None:
-                        game_found = False
-                    else:             
-                        if self.client.get_channel(int(result_game_channel[0])) != None:
-                            category = self.client.get_channel(int(result_game_channel[0])).category
-                        else:
-                            game_found = False
-                            
-                            
-                    if result_bot is None or result_bot[0] is None:
-                        bot_found = False
-                    else:
-                        if self.client.get_channel(int(result_bot[0])) != None:
-                            category = self.client.get_channel(int(result_bot[0])).category
-                        else:
-                            bot_found = False
-                            
-                        
-                    if bot_found != True and member_found != True and game_found != True:
-                        category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                
-                
-                
-                group_members = group.member_count
-                
-                
-                channel = await ctx.guild.create_voice_channel(name=f"Group: {group_members}", category=category)
-                
-                if result is None:
-                    sql = ("INSERT INTO main(guild_id, group_channel_id) VALUES(?,?)")
-                    val = (ctx.guild.id, channel.id)
-                    
-                    
-                    await ctx.reply(embed=embed)
-                elif result is not None:
-                    sql = ("UPDATE main SET group_channel_id = ? WHERE guild_id = ?")
-                    val = (channel.id, ctx.guild.id)
-
-                    
-                    await ctx.reply(embed=embed)
-                    
-                    
-                sql_id = ("UPDATE main SET group_id = ? WHERE guild_id = ?")
-                val_id = (str(id), ctx.guild.id)
-                    
-
-                    
-                cursor.execute(sql, val)
-                cursor_game_id.execute(sql_id, val_id)
-                db.commit()
-                cursor.close()
-                cursor_game_id.close()
-                db.close()
+                await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
                     title="Server Info Error",
                     colour= nextcord.Colour.red(),
-                    description=f'Server Info Group Members has already been setup!'
+                    description=f'Server Info Group has already been setup!'
                 )
                 
                 await ctx.reply(embed=embed_error)
@@ -803,61 +624,36 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-    # @setup_group.error
-    # async def game_error(self,ctx, error):
-    #     embed=nextcord.Embed(
-    #         title="Error",
-    #         colour= nextcord.Colour.red(),
-    #         description=error
-    #     )
+    @setup_group.error
+    async def group_error(self,ctx, error):
+        embed=nextcord.Embed(
+            title="Error",
+            colour= nextcord.Colour.red(),
+            description=error
+        )
                     
-    #     embed.timestamp = datetime.now()
+        embed.timestamp = datetime.now()
         
-    #     await ctx.reply(embed=embed)
-    
+        await ctx.reply(embed=embed)
+            
     @server_info.command()
     async def disable_group(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT group_channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            if result != None:
-                if result[0] != None:
-                    channel = self.client.get_channel(int(result[0]))
-                else:
-                    channel = None
-                
-            else:
-                channel = None
+            group_channel = None
             
-            if channel != None:
-            
-                embed=nextcord.Embed(
-                    title="Server Info Disabled",
-                    colour= nextcord.Colour.blurple(),
-                    description=f'Server Info Group Members has been disabled!'
-                )
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
                 
-                embed.timestamp = datetime.now()
-                    
-
-                channel = self.client.get_channel(int(result[0]))
-        
-                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
-                
-                
-                
-                
-                
-                await channel.delete()
-                all_channels = channel_category.channels
-                if len(all_channels) == 0:
-                    await channel_category.delete()
-                
-                await ctx.reply(embed=embed)
-            else:
+            if group_channel is None:
                 embed_error_disable=nextcord.Embed(
                     title="Server Info Error",
                     colour= nextcord.Colour.red(),
@@ -866,7 +662,31 @@ class server_info(commands.Cog):
                         
                 embed_error_disable.timestamp = datetime.now()
                 
-                await ctx.reply(embed=embed_error_disable)   
+                await ctx.reply(embed=embed_error_disable)
+            else:
+                channel = self.client.get_channel(group_channel)
+                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
+                await channel.delete()
+                all_channels = channel_category.channels
+                if len(all_channels) == 0:
+                    await channel_category.delete()
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}   
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"group_channel":None}})
+                    collection.update({"_id":ctx.guild.id},{"$set":{"group_id":None}})
+                
+                embed=nextcord.Embed(
+                    title="Server Info Disabled",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Group has been disabled!'
+                )
+                
+                embed.timestamp = datetime.now()    
+                
+                await ctx.reply(embed=embed)
+            
         else:
             embed_error_perms=nextcord.Embed(
                 title="Error",
@@ -877,6 +697,181 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
+            
+    
+    @server_info.command()
+    async def setup_favorites(self, ctx,*, id:int):
+        if ctx.author.guild_permissions.administrator:
+            try:
+                place = await roblox_client.get_place(id)
+                
+            except:
+                embed_error_none=nextcord.Embed(
+                    title="Error",
+                    colour= nextcord.Colour.red(),
+                    description="No game found! Make sure it is the `PlaceId`!"
+                )
+                        
+                embed_error_none.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed_error_none)
+                return
+            universe = await roblox_client.get_universe(place.universe.id)
+            
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
+            
+            member_channel = None
+            bot_channel = None
+            game_channel = None
+            group_channel = None
+            game_favorite_channel = None
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
+                
+                
+            if game_favorite_channel is None:
+                overwrites={
+                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                }
+                 
+                if member_channel is None and bot_channel is None and game_channel is None and group_channel is None:    
+                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                else: 
+                    if member_channel != None:
+                        category = self.client.get_channel(member_channel).category
+                        
+                    if bot_channel != None:
+                        category = self.client.get_channel(bot_channel).category
+                        
+                    if game_channel != None:
+                        category = self.client.get_channel(game_channel).category
+                        
+                    if group_channel != None:
+                        category = self.client.get_channel(group_channel).category
+                        
+                        
+
+                game_info = universe.favorited_count
+                channel = await ctx.guild.create_voice_channel(name=f"Favorites: {game_info}", category=category)
+                
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":channel.id,"game_favorite_id":id}
+                
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_channel":channel.id}})
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_id":id}})
+                    
+                embed=nextcord.Embed(
+                    title="Server Info Updated",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Game Favorites Channel Created! Note that the channel updates every 30 minutes.'
+                )
+                
+                embed.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed)
+            else:
+                embed_error=nextcord.Embed(
+                    title="Server Info Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Server Info Favorites has already been setup!'
+                )
+                
+                await ctx.reply(embed=embed_error)
+        else:
+            embed_error_perms=nextcord.Embed(
+                title="Error",
+                colour= nextcord.Colour.red(),
+                description="You do not have the required permissions!"
+            )
+                    
+            embed_error_perms.timestamp = datetime.now()
+            
+            await ctx.reply(embed=embed_error_perms)
+            
+    @setup_group.error
+    async def group_error(self,ctx, error):
+        embed=nextcord.Embed(
+            title="Error",
+            colour= nextcord.Colour.red(),
+            description=error
+        )
+                    
+        embed.timestamp = datetime.now()
+        
+        await ctx.reply(embed=embed)
+
+    @server_info.command()
+    async def disable_favorites(self, ctx):
+        if ctx.author.guild_permissions.administrator:
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
+            
+            game_favorite_channel = None
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
+                
+            if game_favorite_channel is None:
+                embed_error_disable=nextcord.Embed(
+                    title="Server Info Error",
+                    colour= nextcord.Colour.red(),
+                    description="This feature is already disabled!"
+                )
+                        
+                embed_error_disable.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed_error_disable)
+            else:
+                channel = self.client.get_channel(game_favorite_channel)
+                channel_category = nextcord.utils.get(ctx.guild.categories, id=channel.category_id)
+                await channel.delete()
+                all_channels = channel_category.channels
+                if len(all_channels) == 0:
+                    await channel_category.delete()
+                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}   
+                try:
+                    collection.insert_one(channel_info)
+                except:
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_channel":None}})
+                    collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_id":None}})
+                
+                embed=nextcord.Embed(
+                    title="Server Info Disabled",
+                    colour= nextcord.Colour.blurple(),
+                    description=f'Server Info Favorites has been disabled!'
+                )
+                
+                embed.timestamp = datetime.now()    
+                
+                await ctx.reply(embed=embed)
+            
+        else:
+            embed_error_perms=nextcord.Embed(
+                title="Error",
+                colour= nextcord.Colour.red(),
+                description="You do not have the required permissions!"
+            )
+                    
+            embed_error_perms.timestamp = datetime.now()
+            
+            await ctx.reply(embed=embed_error_perms)
+    
         
 
 
@@ -886,62 +881,53 @@ class server_info(commands.Cog):
     @tasks.loop(hours=1)
     async def refresh(self):
         for guild in self.client.guilds:
-            db = sqlite3.connect('server_info.sqlite')
-            cursor_member = db.cursor()
-            cursor_member.execute(f"SELECT member_channel_id FROM main WHERE guild_id = {guild.id}")
-            result_member = cursor_member.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["server_collection"]
             
-            cursor_bot = db.cursor()
-            cursor_bot.execute(f"SELECT bot_channel_id FROM main WHERE guild_id = {guild.id}")
-            result_bot = cursor_bot.fetchone()
+            member_channel = None
+            bot_channel = None
+            game_channel = None
+            group_channel = None
+            game_favorite_channel = None
             
-            cursor_game_channel = db.cursor()
-            cursor_game_channel.execute(f"SELECT game_channel_id FROM main WHERE guild_id = {guild.id}")
-            result_game_channel = cursor_game_channel.fetchone()
+            for x in collection.find({"_id": guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                game_id = x["game_id"]
+                group_channel = x["group_channel"]
+                group_id = x["group_id"]
+                game_favorite_channel = x["game_favorite_channel"]
+                game_favorite_id = x["game_favorite_id"]
             
-            cursor_game_id = db.cursor()
-            cursor_game_id.execute(f"SELECT game_id FROM main WHERE guild_id = {guild.id}")
-            result_game_id = cursor_game_id.fetchone()
-            
-            cursor_group = db.cursor()
-            cursor_group.execute(f"SELECT group_channel_id FROM main WHERE guild_id = {guild.id}")
-            result_group = cursor_group.fetchone()
-            
-            cursor_group_id = db.cursor()
-            cursor_group_id.execute(f"SELECT group_id FROM main WHERE guild_id = {guild.id}")
-            result_group_id = cursor_group_id.fetchone()
-            
-            if result_member != None:
-                if result_member[0] != None:
-                    channel_member = self.client.get_channel(int(result_member[0]))
-                else:
-                    channel_member = None
+            if member_channel != None:
+                channel_member = self.client.get_channel(member_channel)
             else:
                 channel_member = None
-                
-            if result_bot != None:
-                if result_bot[0] != None:
-                    channel_bot = self.client.get_channel(int(result_bot[0]))
-                else:
-                    channel_bot = None
+
+            if bot_channel != None:
+                channel_bot = self.client.get_channel(bot_channel)
             else:
                 channel_bot = None
                 
-            if result_game_channel != None:
-                if result_game_channel[0] != None:
-                    channel_game = self.client.get_channel(int(result_game_channel[0]))
-                else:
-                    channel_game = None
+            if game_channel != None:
+                channel_game = self.client.get_channel(game_channel)
             else:
                 channel_game = None
                 
-            if result_group != None:
-                if result_group[0] != None:
-                    channel_group = self.client.get_channel(int(result_group[0]))
-                else:
-                    channel_group = None
+            if group_channel != None:
+                channel_group = self.client.get_channel(group_channel)
             else:
                 channel_group = None
+            
+            if game_favorite_channel != None:
+                channel_game_favorite = self.client.get_channel(game_favorite_channel)
+            else:
+                channel_game_favorite = None
+            
+            
             
             if channel_bot != None:
                 members = guild.members
@@ -962,23 +948,33 @@ class server_info(commands.Cog):
                 if int(member_text_split[1]) != guild.member_count:
                     await channel_member.edit(name=f"Members: {guild.member_count}")
             if channel_game != None:
-                universe = await roblox_client.get_universe(int(result_game_id[0]))
+                place = await roblox_client.get_place(game_id)
+                
+                universe = await roblox_client.get_universe(place.universe.id)
                 
                 text_split = channel_game.name.split(": ")
-                
-                
+
                 if int(universe.playing) != int(text_split[1]):
                     await channel_game.edit(name=f"Players: {universe.playing}")
             
             if channel_group != None:
-                
-                
-                group = await roblox_client.get_group(int(result_group_id[0]))
+
+                group = await roblox_client.get_group(group_id)
                 
                 text_split_group = channel_group.name.split(": ")
                 
                 if group.get_members != int(text_split_group[1]):
                     await channel_group.edit(name=f"Group: {group.get_members}")
+                    
+            if channel_game_favorite != None:
+                place = await roblox_client.get_place(game_favorite_id)
+                
+                universe = await roblox_client.get_universe(place.universe.id)
+                
+                text_split_favorite = channel_game_favorite.name.split(": ")
+                
+                if int(universe.favorited_count) != int(text_split_favorite[1]):
+                    await channel_game_favorite.edit(name=f"Favorites: {universe.favorited_count}")
                     
             
                 
