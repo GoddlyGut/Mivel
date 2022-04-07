@@ -79,16 +79,16 @@ class suggestions(commands.Cog):
     
     
     @commands.group(invoke_without_command=True)
-    async def suggest_settings(self, ctx):
+    async def suggestion(self, ctx):
         embed=nextcord.Embed(
             title="Suggest Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!suggest_settings channel <#channel>`\n`m!suggest_settings disable`\n`m!suggest_settings enable`"
+            description="Available Setup Commands: \n`m!suggestion channel <#channel>`\n`m!suggestion disable`\n`m!suggestion enable`"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
     
-    @suggest_settings.command()
+    @suggestion.command()
     async def channel(self, ctx, channel:nextcord.TextChannel):
         if ctx.message.author.guild_permissions.manage_messages:
 
@@ -131,21 +131,10 @@ class suggestions(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms) 
     
-    @channel.error
-    async def channel_error(self,ctx, error):
-        embed=nextcord.Embed(
-                title="Error",
-                colour= nextcord.Colour.red(),
-                description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
         
         
         
-    @suggest_settings.command()
+    @suggestion.command()
     async def disable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
@@ -198,7 +187,7 @@ class suggestions(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
         
-    @suggest_settings.command()
+    @suggestion.command()
     async def enable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             

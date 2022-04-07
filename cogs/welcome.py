@@ -10,16 +10,16 @@ class welcome_system(commands.Cog):
          
     
     @commands.group(invoke_without_command=True)
-    async def welcome_settings(self, ctx):
+    async def welcome(self, ctx):
         embed=nextcord.Embed(
             title="Welcome Settings Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`m!welcome_settings channel <#channel>`\n`m!welcome_settings message <'Message'>`\n`m!welcome_settings disable`\n`m!welcome_settings enable`"
+            description="Available Setup Commands:\n`m!welcome channel <#channel>`\n`m!welcome message <'Message'>`\n`m!welcome disable`\n`m!welcome enable`"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
     
-    @welcome_settings.command()
+    @welcome.command()
     async def channel(self, ctx, channel:nextcord.TextChannel):
         if ctx.message.author.guild_permissions.manage_messages:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -65,20 +65,10 @@ class welcome_system(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms) 
-            
-    @channel.error
-    async def setup_error(self,ctx, error):
-        embed=nextcord.Embed(
-                title="Error",
-                colour= nextcord.Colour.red(),
-                description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        await ctx.reply(embed=embed)
+
         
         
-    @welcome_settings.command()
+    @welcome.command()
     async def message(self,ctx,*, message):
         if ctx.message.author.guild_permissions.manage_messages:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -136,19 +126,9 @@ class welcome_system(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms) 
-            
-    @message.error
-    async def message_error(self,ctx, error):
-        embed=nextcord.Embed(
-                title="Error",
-                colour= nextcord.Colour.red(),
-                description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        await ctx.reply(embed=embed)
+
         
-    @welcome_settings.command()
+    @welcome.command()
     async def disable(self,ctx):
         if ctx.message.author.guild_permissions.manage_messages:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -207,7 +187,7 @@ class welcome_system(commands.Cog):
             
             
 
-    @welcome_settings.command()
+    @welcome.command()
     async def enable(self,ctx):
         if ctx.message.author.guild_permissions.manage_messages:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"

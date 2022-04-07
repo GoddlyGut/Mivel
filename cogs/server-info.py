@@ -19,19 +19,20 @@ class server_info(commands.Cog):
         self.refresh.start()
         
     @commands.group(invoke_without_command=True)
-    async def server_info(self, ctx):
+    async def stats(self, ctx):
         embed=nextcord.Embed(
             title="Server Info",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!server_info setup_members`\n`m!server_info disable_members`\n`m!server_info setup_bots`\n`m!server_info disable_bots`\n`m!server_info setup_game <PlaceId>`\n`m!server_info disable_game`\n`m!server_info setup_group <GroupId>`\n`m!server_info disable_group`\n`m!server_info setup_favorites <PlaceId>`\n`m!server_info disable_favorites`",
+            description="Available Setup Commands: \n`m!stats setup_members`\n`m!stats disable_members`\n`m!stats setup_bots`\n`m!stats disable_bots`\n`m!stats setup_game <PlaceId>`\n`m!stats disable_game`\n`m!stats setup_group <GroupId>`\n`m!stats disable_group`\n`m!stats setup_favorites <PlaceId>`\n`m!stats disable_favorites`",
             
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
+
     
     
     
-    @server_info.command()
+    @stats.command()
     async def setup_members(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
@@ -110,21 +111,11 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-    @setup_members.error
-    async def members_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
+
             
             
             
-    @server_info.command()
+    @stats.command()
     async def disable_members(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -185,7 +176,7 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-    @server_info.command()
+    @stats.command()
     async def setup_bots(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
@@ -273,20 +264,9 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-    @setup_bots.error
-    async def bots_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
-            
 
-    @server_info.command()
+
+    @stats.command()
     async def disable_bots(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -348,7 +328,7 @@ class server_info(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
             
             
-    @server_info.command()
+    @stats.command()
     async def setup_game(self, ctx,*, id:int):
         if ctx.author.guild_permissions.administrator:
             try:
@@ -447,20 +427,10 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-    @setup_game.error
-    async def game_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
+
             
             
-    @server_info.command()
+    @stats.command()
     async def disable_game(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -525,7 +495,7 @@ class server_info(commands.Cog):
 
     
     
-    @server_info.command()
+    @stats.command()
     async def setup_group(self, ctx,*, id:int):
         if ctx.author.guild_permissions.administrator:
             try:
@@ -623,19 +593,8 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-    @setup_group.error
-    async def group_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
             
-    @server_info.command()
+    @stats.command()
     async def disable_group(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -698,7 +657,7 @@ class server_info(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
             
     
-    @server_info.command()
+    @stats.command()
     async def setup_favorites(self, ctx,*, id:int):
         if ctx.author.guild_permissions.administrator:
             try:
@@ -797,19 +756,9 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
             
-    @setup_group.error
-    async def group_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
 
-    @server_info.command()
+
+    @stats.command()
     async def disable_favorites(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -963,7 +912,7 @@ class server_info(commands.Cog):
                 text_split_group = channel_group.name.split(": ")
                 
                 if group.get_members != int(text_split_group[1]):
-                    await channel_group.edit(name=f"Group: {group.get_members}")
+                    await channel_group.edit(name=f"Group: {group.member_count}")
                     
             if channel_game_favorite != None:
                 place = await roblox_client.get_place(game_favorite_id)
