@@ -16,7 +16,11 @@ class help(commands.Cog):
     async def help(self, interaction:Interaction):
         embed = nextcord.Embed(
             title="Commands",
+<<<<<<< HEAD
             description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server!",
+=======
+            description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)",
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
         )
         embed.add_field(name="⚙️ Default Prefix", value="```m!```",inline=False)
         embed.add_field(name="📜 Ticket System", value="```m!ticket help```")
@@ -52,7 +56,11 @@ class help(commands.Cog):
         if general and general.permissions_for(guild.me).send_messages:
             embed = nextcord.Embed(
                 title="Commands",
+<<<<<<< HEAD
                 description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server!",
+=======
+                description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)",
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
             )
             embed.add_field(name="⚙️ Default Prefix", value="```m!```",inline=False)
             embed.add_field(name="📜 Ticket System", value="```m!ticket help```")
@@ -64,10 +72,14 @@ class help(commands.Cog):
             embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)
             embed.color = nextcord.Color.blurple()
 
+<<<<<<< HEAD
             link = Button(label="Link to Support Server", url="https://discord.gg/HvPTFMfPRy", style=nextcord.ButtonStyle.blurple)
             view=View()
             view.add_item(link)
 
             await general.send(embed=embed, view=view)
+=======
+            await general.send(embed=embed)
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
 def setup(client):
     client.add_cog(help(client))

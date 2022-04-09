@@ -18,6 +18,7 @@ class ban_system(commands.Cog):
         if interaction.user.guild_permissions.kick_members:
             if member.name != interaction.user.name:
                 await member.kick(reason=reason)
+<<<<<<< HEAD
                 embed=nextcord.Embed(
                     title="",
                     color=nextcord.Color.green(),
@@ -25,6 +26,9 @@ class ban_system(commands.Cog):
                 )
 
                 await interaction.response.send_message(embed=embed)
+=======
+                await interaction.response.send_message(f'✅ User {member.mention} has been kicked')
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
             else:
                 embed_error_action=nextcord.Embed(
                     title="❌ Error",
@@ -52,6 +56,7 @@ class ban_system(commands.Cog):
             if member.name != interaction.user.name:
                 
                 await member.ban(reason=reason)
+<<<<<<< HEAD
                 embed=nextcord.Embed(
                     title="",
                     color=nextcord.Color.green(),
@@ -59,6 +64,9 @@ class ban_system(commands.Cog):
                 )
 
                 await interaction.response.send_message(embed=embed)
+=======
+                await interaction.response.send_message(f'✅ User {member.mention} has been banned')
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
             else:
                 embed_error_action=nextcord.Embed(
                     title="❌ Error",
@@ -92,7 +100,11 @@ class ban_system(commands.Cog):
             embed = nextcord.Embed(
                 title="",
                 color=nextcord.Colour.green(),
+<<<<<<< HEAD
                 description=f"✅ {interaction.channel.mention} has been successfully locked!"
+=======
+                description=f"✅ {interaction.channel.mention} has been successfully locked down by {interaction.user.mention}!"
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
             )
             
             embed.timestamp = datetime.now()
@@ -119,7 +131,11 @@ class ban_system(commands.Cog):
             embed = nextcord.Embed(
                 title="",
                 color=nextcord.Colour.green(),
+<<<<<<< HEAD
                 description=f"✅ {interaction.channel.mention} has been successfully unlocked!"
+=======
+                description=f"✅ {interaction.channel.mention} has been successfully unlocked by {interaction.user.mention}!"
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
             )
             
             embed.timestamp = datetime.now()
@@ -192,7 +208,11 @@ class ban_system(commands.Cog):
             embed_success_remove_timeout=nextcord.Embed(
                 title="",
                 colour= nextcord.Colour.green(),
+<<<<<<< HEAD
                 description=f"✅ {user.mention} has been successfully unmuted!"
+=======
+                description=f"✅ {user.mention} has been successfully unmuted by {interaction.user.mention}"
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
             )
                         
             embed_success_remove_timeout.timestamp = datetime.now()
@@ -221,6 +241,7 @@ class ban_system(commands.Cog):
             
             if (user.name, user.discriminator) == (member_name, member_hash_code):
                 await interaction.guild.unban(user)
+<<<<<<< HEAD
                 embed=nextcord.Embed(
                     title="",
                     color=nextcord.Color.green(),
@@ -228,6 +249,9 @@ class ban_system(commands.Cog):
                 )
 
                 await interaction.response.send_message(embed=embed)
+=======
+                await interaction.response.send_message(f'✅ User {user.mention} has been unbanned!')
+>>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
         else:
             embed_error_perms=nextcord.Embed(
                 title="❌ Error",
