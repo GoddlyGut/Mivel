@@ -19,11 +19,7 @@ class ticket_system(commands.Cog):
         embed=nextcord.Embed(
             title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-<<<<<<< HEAD
             description="```m!ticket role <@role>```**Sets a role that can view tickets**\n```m!ticket message <'message'>```**Sets a ticket message**\n```m!ticket disable```**Disables the ticket system**\n```m!ticket enable```**Enables the ticket system**" 
-=======
-            description="`m!ticket role <@role>`-**Sets a role that can view tickets**\n`m!ticket message <'message'>`-**Sets a ticket message**\n`m!ticket disable`-**Disables the ticket system**\n`m!ticket enable`-**Enables the ticket system**" 
->>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
         )
 
         await ctx.send(embed=embed)

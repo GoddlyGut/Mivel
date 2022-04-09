@@ -183,11 +183,7 @@ class roblox_features(commands.Cog):
         embed = nextcord.Embed(
             title="📦 Available Setup Commands:",
             colour=nextcord.Colour.blurple(),
-<<<<<<< HEAD
             description="```m!verify setup <@role>```**Allows you to setup the verification system role**\n```m!verify disable```**Allows you to disable the verification system**\n```m!verify enable```**Allows you to enable the verification system**",
-=======
-            description="`m!verify setup <@role>`-**Allows you to setup the verification system role**\n`m!verify disable`-**Allows you to disable the verification system**\n`m!verify enable`-**Allows you to enable the verification system**",
->>>>>>> a3b827067ed31a7fa14adf500ce1e60781a1e9dd
 
         )
         embed.timestamp = datetime.now()
