@@ -12,9 +12,9 @@ class welcome_system(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def welcome(self, ctx):
         embed=nextcord.Embed(
-            title="Welcome Settings Info",
+            title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`m!welcome channel <#channel>`\n`m!welcome message <'Message'>`\n`m!welcome disable`\n`m!welcome enable`"
+            description="`m!welcome channel <#channel>`-**Sets a welcome channel**\n`m!welcome message <'Message'>`-**Sets a welcome message**\n`m!welcome disable`-**Disables the welcome system**\n`m!welcome enable`-**Enables the welcome system**"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
@@ -46,7 +46,7 @@ class welcome_system(commands.Cog):
 
                 
             embed=nextcord.Embed(
-                title="Welcome Info Updated",
+                title="✅ Welcome Info Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Channel has been set to {channel.mention}!"
             )
@@ -57,7 +57,7 @@ class welcome_system(commands.Cog):
                 
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -85,7 +85,7 @@ class welcome_system(commands.Cog):
                 
             if channel is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the welcome system!'
                 )
@@ -107,7 +107,7 @@ class welcome_system(commands.Cog):
 
                 
             embed=nextcord.Embed(
-                title="Welcome Info Updated",
+                title="✅ Welcome Info Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Message has been set to '{message}'!"
             )
@@ -118,7 +118,7 @@ class welcome_system(commands.Cog):
                 
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -149,7 +149,7 @@ class welcome_system(commands.Cog):
             
             if channel is None or message is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the welcome system!'
                 )
@@ -163,7 +163,7 @@ class welcome_system(commands.Cog):
 
             
             embed=nextcord.Embed(
-                title="Welcome System Updated",
+                title="✅ Welcome System Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Welcome system has been disabled!"
             )
@@ -173,7 +173,7 @@ class welcome_system(commands.Cog):
             await ctx.reply(embed=embed)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -206,7 +206,7 @@ class welcome_system(commands.Cog):
             
             if channel is None or message is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the welcome system!'
                 )
@@ -220,7 +220,7 @@ class welcome_system(commands.Cog):
 
             
             embed=nextcord.Embed(
-                title="Welcome System Updated",
+                title="✅ Welcome System Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Welcome system has been enabled!"
             )
@@ -230,7 +230,7 @@ class welcome_system(commands.Cog):
             await ctx.reply(embed=embed)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -270,7 +270,7 @@ class welcome_system(commands.Cog):
                 embed_joined=nextcord.Embed(
                     title="New User!",
                     colour= nextcord.Colour.blurple(),
-                    description=f"Hello {member.mention}, {welcome_description}"
+                    description=f"Hey {member.mention}, {welcome_description}"
                         
                 )
                 embed_joined.set_thumbnail(url=member.display_avatar.url)

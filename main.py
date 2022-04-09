@@ -21,8 +21,8 @@ else:
         json.dump(configTemplate, f)
 
 
-#TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
-TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
+TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+#TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
 
 #TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -48,7 +48,7 @@ async def on_ready():
 @client.event
 async def on_command_error(ctx, error):
     embed=nextcord.Embed(
-        title="Error",
+        title="❌ Error",
         colour= nextcord.Colour.red(),
         description=f"{error} | To see a list of available commands, please use `/help` for more info! If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
     )

@@ -17,9 +17,9 @@ class ticket_system(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def ticket(self, ctx):
         embed=nextcord.Embed(
-            title="Ticket Settings Info",
+            title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`m!ticket role <@role>`\n`m!ticket message <'message'>`\n`m!ticket disable`\n`m!ticket enable`" 
+            description="`m!ticket role <@role>`-**Sets a role that can view tickets**\n`m!ticket message <'message'>`-**Sets a ticket message**\n`m!ticket disable`-**Disables the ticket system**\n`m!ticket enable`-**Enables the ticket system**" 
         )
 
         embed.timestamp = datetime.now()
@@ -52,7 +52,7 @@ class ticket_system(commands.Cog):
                 collection.update({"_id":ctx.guild.id},{"$set":{"role":support_role.id}})
             
             embed=nextcord.Embed(
-                title="Ticket Info Updated",
+                title="✅ Ticket Info Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Ticket support role has been set to {support_role.mention}"
             )
@@ -64,7 +64,7 @@ class ticket_system(commands.Cog):
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -98,7 +98,7 @@ class ticket_system(commands.Cog):
             
             if role is None and message is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the ticket system!'
                 )
@@ -111,9 +111,9 @@ class ticket_system(commands.Cog):
                 collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":False}})
                 
             embed=nextcord.Embed(
-                title="Welcome System Updated",
+                title="✅ Ticket System Updated",
                 colour= nextcord.Colour.green(),
-                description=f"Welcome system has been disabled!"
+                description=f"Ticket system has been disabled!"
             )
             
             embed.timestamp = datetime.now()
@@ -123,7 +123,7 @@ class ticket_system(commands.Cog):
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -153,7 +153,7 @@ class ticket_system(commands.Cog):
             
             if role is None and message is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the ticket system!'
                 )
@@ -166,9 +166,9 @@ class ticket_system(commands.Cog):
                 collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":True}})
                 
             embed=nextcord.Embed(
-                title="Welcome System Updated",
+                title="✅ Ticket System Updated",
                 colour= nextcord.Colour.green(),
-                description=f"Welcome system has been disabled!"
+                description=f"Ticket system has been disabled!"
             )
             
             embed.timestamp = datetime.now()
@@ -177,7 +177,7 @@ class ticket_system(commands.Cog):
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -211,7 +211,7 @@ class ticket_system(commands.Cog):
                 collection.update({"_id":ctx.guild.id},{"$set":{"message":ticket_message}})
             
             embed=nextcord.Embed(
-                title="Ticket Info Updated",
+                title="✅ Ticket Info Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Ticket message has been set to '{ticket_message}'"
             )
@@ -222,7 +222,7 @@ class ticket_system(commands.Cog):
             
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -253,7 +253,7 @@ class ticket_system(commands.Cog):
         
         if role is None and message is None:
             embed_error=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="Please setup the ticket bot before use!"
             )
@@ -264,7 +264,7 @@ class ticket_system(commands.Cog):
         else:
             if enabled == False:
                 embed_not_enabled=nextcord.Embed(
-                    title="Ticket System",
+                    title="✅ Ticket System Updated",
                     colour= nextcord.Colour.red(),
                     description="Ticket system has been disabled!"
                 )   

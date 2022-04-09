@@ -15,17 +15,14 @@ class help(commands.Cog):
     async def help(self, interaction:Interaction):
         embed = nextcord.Embed(
             title="Commands",
-            description="This is a list of available commands provided by Mivel!",
+            description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)",
         )
-        embed.add_field(name="Default Prefix", value="`m!`")
-        embed.add_field(name="General Commands", value="`/help`\n`/meme`\n`/ticket`\n`/suggest`\n`/verify`\n",inline=False)
-        embed.add_field(name="Roblox Commands", value="`/roblox-user-search`\n`/roblox-user-info`\n`/other-roblox-user-info`",inline=False)
-        embed.add_field(name="Moderation Commands", value="`/ban`\n`/unban`\n`/kick`\n`/timeout`\n`/purge`\n`/purge-member`\n`/lockdown`\n`/unlock`\n",inline=False)
-        embed.add_field(name="Ticket Setup Commands", value="`m!ticket role <@role>`\n`m!ticket message <'message'>`\n`m!ticket disable`\n`m!ticket enable`\n",inline=False)
-        embed.add_field(name="Suggest Setup Commands", value="`m!suggestion channel <#channel>`\n`m!suggestion disable`\n`m!suggestion enable`\n",inline=False)
-        embed.add_field(name="Welcome Setup Commands", value="`m!welcome channel <#channel>`\n`m!welcome message <Message>`\n`m!welcome enable`\n`m!welcome disable`\n",inline=False)
-        embed.add_field(name="Server Stats Setup Commands", value="`m!stats setup_members`\n`m!stats disable_members`\n`m!stats setup_bots`\n`m!stats disable_bots`\n`m!stats setup_game <PlaceId>`\n`m!stats disable_game`\n`m!stats setup_group <GroupId>`\n`m!stats disable_group`\n`m!stats setup_favorites <PlaceId>`\n`m!stats disable_favorites`",inline=False)
-        embed.add_field(name="Verify Setup Commands", value="`m!verify setup <@role>`\n`m!verify disable`\n`m!verify enable`",inline=False)
+        embed.add_field(name="⚙️ Default Prefix", value="```m!```",inline=False)
+        embed.add_field(name="📜 Ticket System", value="```m!ticket help```")
+        embed.add_field(name="✏️ Suggest System", value="```m!suggestion help```")
+        embed.add_field(name="👋 Welcome System", value="```m!welcome help```")
+        embed.add_field(name="📈 Server System", value="```m!stats help```")
+        embed.add_field(name="✅ Verify System", value="```m!verify help```")
         embed.set_footer(text="Programmed by GoddlyGut#0001")
         embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)
         embed.color = nextcord.Color.blurple()
@@ -39,7 +36,7 @@ class help(commands.Cog):
         embed_joined = Embed(
             title="Mivel",
             color=nextcord.Colour.green(),
-            description="Hey there! Thanks for adding Mivel to your server! All the server commands can be accessed by typing `/help` in your server channel. If you have any questions, you can join our discord here: [Support Server](https://discord.gg/HvPTFMfPRy)"
+            description="Hey there! Thanks for adding Mivel to your server! All the server setup commands can be accessed by typing `/help` in your server channel. If you have any questions, you can join our discord here: [Support Server](https://discord.gg/HvPTFMfPRy)"
         )
         
         embed_joined.timestamp = datetime.now()
@@ -50,21 +47,18 @@ class help(commands.Cog):
         if general and general.permissions_for(guild.me).send_messages:
             embed = nextcord.Embed(
                 title="Commands",
-                description="This is a list of available commands provided by Mivel!",
+                description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)",
             )
-            embed.add_field(name="Default Prefix", value="`m!`")
-            embed.add_field(name="General Commands", value="`/help`\n`/meme`\n`/ticket`\n`/suggest`\n`/verify`\n",inline=False)
-            embed.add_field(name="Roblox Commands", value="`/roblox-user-search`\n`/roblox-user-info`\n`/other-roblox-user-info`",inline=False)
-            embed.add_field(name="Moderation Commands", value="`/ban`\n`/unban`\n`/kick`\n`/timeout`\n`/purge`\n`/purge-member`\n`/lockdown`\n`/unlock`\n",inline=False)
-            embed.add_field(name="Ticket Setup Commands", value="`m!ticket role <@role>`\n`m!ticket message <'message'>`\n`m!ticket disable`\n`m!ticket enable`\n",inline=False)
-            embed.add_field(name="Suggest Setup Commands", value="`m!suggestion channel <#channel>`\n`m!suggestion disable`\n`m!suggestion enable`\n",inline=False)
-            embed.add_field(name="Welcome Setup Commands", value="`m!welcome channel <#channel>`\n`m!welcome message <Message>`\n`m!welcome enable`\n`m!welcome disable`\n",inline=False)
-            embed.add_field(name="Server Stats Setup Commands", value="`m!stats setup_members`\n`m!stats disable_members`\n`m!stats setup_bots`\n`m!stats disable_bots`\n`m!stats setup_game <PlaceId>`\n`m!stats disable_game`\n`m!stats setup_group <GroupId>`\n`m!stats disable_group`\n`m!stats setup_favorites <PlaceId>`\n`m!stats disable_favorites`",inline=False)
-            embed.add_field(name="Verify Setup Commands", value="`m!verify setup <@role>`\n`m!verify disable`\n`m!verify enable`",inline=False)
-
+            embed.add_field(name="⚙️ Default Prefix", value="```m!```",inline=False)
+            embed.add_field(name="📜 Ticket System", value="```m!ticket help```")
+            embed.add_field(name="✏️ Suggest System", value="```m!suggestion help```")
+            embed.add_field(name="👋 Welcome System", value="```m!welcome help```")
+            embed.add_field(name="📈 Server System", value="```m!stats help```")
+            embed.add_field(name="✅ Verify System", value="```m!verify help```")
             embed.set_footer(text="Programmed by GoddlyGut#0001")
             embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)
             embed.color = nextcord.Color.blurple()
+
             await general.send(embed=embed)
 def setup(client):
     client.add_cog(help(client))

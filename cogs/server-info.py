@@ -4,6 +4,8 @@ from datetime import datetime
 from nextcord.utils import get
 import roblox
 
+from cogs.buttons import Subscriptions
+
 roblox_client = roblox.Client("6E2C0CF7F4F7E2DCB1709C167EF155C4DCF29DCA9D9F2B91D9908D28B091941597004A87F31D06522D8BFAE02550F523549B290EEA74A2BB0FC9DC47B5818FA1625230B9C2D3F5C51DE9353670E1F5C34FE6D30A61E28EA6E4E7207C75D3BBBDA2956AAF252624EB2FAABA55F0986971AD106E8132ACCBB3C233F003B44BD55EEC52AE97843AD825B527BF29EA849115F7EFE9C3AEE89901BBE7CEB312FED484D9F633882C03111A6757E44C887845291CB3EB639ACFFD6CAE46554B76C8901A290C1BB20A11446C283C2145C3A2DC428399E5B4C6FA1E96331F9058B662734CD7254223304A56115A26216B1292216888383DED91236A6EAE291D85B7D6BA1AE020344B645A83D8C52B691FA3E82415794C4C9C198A97BAFFEE4733A6ECFCE8ED17296E455E7FBE10A5144555023E6BBA36708047CAEC2E016B4369CBFC9B54E333C2F4C27202F0F009A2EB51F6FAE5845F12CE1F3FF20AAC885B8BAD8D16AD473E9A3F")
 import pymongo
 from pymongo import MongoClient
@@ -19,9 +21,9 @@ class server_info(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def stats(self, ctx):
         embed=nextcord.Embed(
-            title="Server Info",
+            title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!stats setup_members`\n`m!stats disable_members`\n`m!stats setup_bots`\n`m!stats disable_bots`\n`m!stats setup_game <PlaceId>`\n`m!stats disable_game`\n`m!stats setup_group <GroupId>`\n`m!stats disable_group`\n`m!stats setup_favorites <PlaceId>`\n`m!stats disable_favorites`",
+            description="`m!stats setup_members`-**Setup stats for server members**\n`m!stats disable_members`-**Disable stats for server members**\n`m!stats setup_bots`-**Setup stats for server bots**\n`m!stats disable_bots`-**Disable stats for server bots**\n`m!stats setup_game <PlaceId>`-**Setup stats for a roblox game**\n`m!stats disable_game`-**Disable stats for a roblox game**\n`m!stats setup_group <GroupId>`-**Setup stats for a roblox group**\n`m!stats disable_group`-**Disable stats for a roblox group**\n`m!stats setup_favorites <PlaceId>`-**Setup stats for a roblox game favorite count**\n`m!stats disable_favorites`-**Disable stats for a roblox game favorite count**\n\n`m!stats return_game`-**Returns the current tracked game**\n`m!stats return_group`-**Returns the current tracked group**\n`m!stats return_favorite`-**Returns the current tracked games favorite count**",
             
         )      
         embed.timestamp = datetime.now()
@@ -83,8 +85,8 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"member_channel":channel.id}})
                     
                 embed=nextcord.Embed(
-                    title="Server Info Updated",
-                    colour= nextcord.Colour.blurple(),
+                    title="✅ Server Info Updated",
+                    colour= nextcord.Colour.green(),
                     description=f'Server Info Member Channel Created! Note that the channel updates every 30 minutes.'
                 )
                 
@@ -93,7 +95,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description=f'Server Info Members has already been setup!'
                 )
@@ -101,7 +103,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed_error)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -132,7 +134,7 @@ class server_info(commands.Cog):
                 
             if member_channel is None:
                 embed_error_disable=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description="This feature is already disabled!"
                 )
@@ -154,7 +156,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"member_channel":None}})
                 
                 embed=nextcord.Embed(
-                    title="Server Info Disabled",
+                    title="✅ Server Info Disabled",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Members has been disabled!'
                 )
@@ -165,7 +167,7 @@ class server_info(commands.Cog):
             
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -235,7 +237,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"bot_channel":channel.id}})
                     
                 embed=nextcord.Embed(
-                    title="Server Info Updated",
+                    title="✅ Server Info Updated",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Bot Channel Created! Note that the channel updates every 30 minutes.'
                 )
@@ -245,7 +247,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description=f'Server Info Bots has already been setup!'
                 )
@@ -283,7 +285,7 @@ class server_info(commands.Cog):
                 
             if bot_channel is None:
                 embed_error_disable=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description="This feature is already disabled!"
                 )
@@ -305,7 +307,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"bot_channel":None}})
                 
                 embed=nextcord.Embed(
-                    title="Server Info Disabled",
+                    title="✅ Server Info Disabled",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Bots has been disabled!'
                 )
@@ -316,7 +318,7 @@ class server_info(commands.Cog):
             
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -335,7 +337,7 @@ class server_info(commands.Cog):
 
             except:
                 embed_error_none=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description="No place found! Make sure it is the `PlaceId`!"
                 )
@@ -399,7 +401,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"game_id":id}})
                     
                 embed=nextcord.Embed(
-                    title="Server Info Updated",
+                    title="✅ Server Info Updated",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Game Channel Created! Note that the channel updates every 30 minutes.'
                 )
@@ -409,7 +411,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description=f'Server Info Game has already been setup!'
                 )
@@ -417,7 +419,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed_error)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -446,7 +448,7 @@ class server_info(commands.Cog):
                 
             if game_channel is None:
                 embed_error_disable=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description="This feature is already disabled!"
                 )
@@ -469,7 +471,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"game_id":None}})
                 
                 embed=nextcord.Embed(
-                    title="Server Info Disabled",
+                    title="✅ Server Info Disabled",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Game has been disabled!'
                 )
@@ -480,7 +482,7 @@ class server_info(commands.Cog):
             
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -501,7 +503,7 @@ class server_info(commands.Cog):
                 
             except:
                 embed_error_none=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description="No group found! Make sure it is the `GroupId`!"
                 )
@@ -564,7 +566,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"group_id":id}})
                     
                 embed=nextcord.Embed(
-                    title="Server Info Updated",
+                    title="✅ Server Info Updated",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Group Channel Created! Note that the channel updates every 30 minutes.'
                 )
@@ -574,7 +576,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description=f'Server Info Group has already been setup!'
                 )
@@ -582,7 +584,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed_error)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -611,7 +613,7 @@ class server_info(commands.Cog):
                 
             if group_channel is None:
                 embed_error_disable=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description="This feature is already disabled!"
                 )
@@ -634,7 +636,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"group_id":None}})
                 
                 embed=nextcord.Embed(
-                    title="Server Info Disabled",
+                    title="✅ Server Info Disabled",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Group has been disabled!'
                 )
@@ -645,7 +647,7 @@ class server_info(commands.Cog):
             
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -663,7 +665,7 @@ class server_info(commands.Cog):
                 
             except:
                 embed_error_none=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description="No game found! Make sure it is the `PlaceId`!"
                 )
@@ -727,7 +729,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_id":id}})
                     
                 embed=nextcord.Embed(
-                    title="Server Info Updated",
+                    title="✅ Server Info Updated",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Game Favorites Channel Created! Note that the channel updates every 30 minutes.'
                 )
@@ -737,7 +739,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed)
             else:
                 embed_error=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description=f'Server Info Favorites has already been setup!'
                 )
@@ -745,7 +747,7 @@ class server_info(commands.Cog):
                 await ctx.reply(embed=embed_error)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -775,7 +777,7 @@ class server_info(commands.Cog):
                 
             if game_favorite_channel is None:
                 embed_error_disable=nextcord.Embed(
-                    title="Server Info Error",
+                    title="❌ Server Info Error",
                     colour= nextcord.Colour.red(),
                     description="This feature is already disabled!"
                 )
@@ -798,7 +800,7 @@ class server_info(commands.Cog):
                     collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_id":None}})
                 
                 embed=nextcord.Embed(
-                    title="Server Info Disabled",
+                    title="✅ Server Info Disabled",
                     colour= nextcord.Colour.blurple(),
                     description=f'Server Info Favorites has been disabled!'
                 )
@@ -809,7 +811,7 @@ class server_info(commands.Cog):
             
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -817,10 +819,163 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-    
+    class Subscriptions(nextcord.ui.View):
+        def __init__(self):
+            super().__init__(timeout = None)
+            self.value = None
         
+        
+    @stats.command()
+    async def return_game(self, ctx):
+        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        cluster = MongoClient(mongo_url)
+        db = cluster["database"]
+        collection = db["server_collection"]
+            
+        member_channel = None
+        bot_channel = None
+        game_channel = None
+        game_id = None
+        group_channel = None
+        group_id = None
+        game_favorite_channel = None
+        game_favorite_id = None
+            
+        for x in collection.find({"_id": ctx.guild.id}):
+            member_channel = x["member_channel"]
+            bot_channel = x["bot_channel"]
+            game_channel = x["game_channel"]
+            game_id = x["game_id"]
+            group_channel = x["group_channel"]
+            group_id = x["group_id"]
+            game_favorite_channel = x["game_favorite_channel"]
+            game_favorite_id = x["game_favorite_id"]
+            
+        if game_channel != None:
+            game = await roblox_client.get_place(game_id)
+            game_universe = await roblox_client.get_universe(game.universe.id)
+            embed_stats = nextcord.Embed(
+                title=game.name,
+                color=nextcord.Colour.blurple(),
+                description=f"⭐ Favorites: {game_universe.favorited_count}\n🧍 Players: {game_universe.playing}\n👨‍👨‍👦 Visits: {game_universe.visits}\n🛠 Creator: {game.builder}\n\n{nextcord.utils.escape_markdown(game.description)}\n\n[Link To {game.name}]({game.url})"
+            )
+            embed_stats.timestamp = datetime.now()
+            
+            embed_stats.set_image(url=f"https://www.roblox.com/asset-thumbnail/image?assetId={game.id}&width=768&height=432&format=png")
+            
+            
+            await ctx.reply(embed=embed_stats)
+        else:
+            embed=nextcord.Embed(
+                title="Server Info Error",
+                colour= nextcord.Colour.red(),
+                description=f'Server Info Game has not been setup!'
+            )
+                
+            embed.timestamp = datetime.now()    
+                
+            await ctx.reply(embed=embed)
+            
+            
+    @stats.command()
+    async def return_group(self, ctx):
+        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        cluster = MongoClient(mongo_url)
+        db = cluster["database"]
+        collection = db["server_collection"]
+            
+        member_channel = None
+        bot_channel = None
+        game_channel = None
+        game_id = None
+        group_channel = None
+        group_id = None
+        game_favorite_channel = None
+        game_favorite_id = None
+            
+        for x in collection.find({"_id": ctx.guild.id}):
+            member_channel = x["member_channel"]
+            bot_channel = x["bot_channel"]
+            game_channel = x["game_channel"]
+            game_id = x["game_id"]
+            group_channel = x["group_channel"]
+            group_id = x["group_id"]
+            game_favorite_channel = x["game_favorite_channel"]
+            game_favorite_id = x["game_favorite_id"]
+            
+        if group_channel != None:
+            group = await roblox_client.get_group(group_id)
+            embed_stats = nextcord.Embed(
+                title=group.name,
+                color=nextcord.Colour.blurple(),
+                description=f"👨‍👨‍👦 Members: {group.member_count}\n🛠 Creator: {group.owner.name}\n\n{nextcord.utils.escape_markdown(group.description)}"
+            )
+            embed_stats.timestamp = datetime.now()
+            
+            
+            
+            await ctx.reply(embed=embed_stats)
+        else:
+            embed=nextcord.Embed(
+                title="Server Info Error",
+                colour= nextcord.Colour.red(),
+                description=f'Server Info Group has not been setup!'
+            )
+                
+            embed.timestamp = datetime.now()    
+                
+            await ctx.reply(embed=embed)
 
-
+    @stats.command()
+    async def return_favorite(self, ctx):
+        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        cluster = MongoClient(mongo_url)
+        db = cluster["database"]
+        collection = db["server_collection"]
+            
+        member_channel = None
+        bot_channel = None
+        game_channel = None
+        game_id = None
+        group_channel = None
+        group_id = None
+        game_favorite_channel = None
+        game_favorite_id = None
+            
+        for x in collection.find({"_id": ctx.guild.id}):
+            member_channel = x["member_channel"]
+            bot_channel = x["bot_channel"]
+            game_channel = x["game_channel"]
+            game_id = x["game_id"]
+            group_channel = x["group_channel"]
+            group_id = x["group_id"]
+            game_favorite_channel = x["game_favorite_channel"]
+            game_favorite_id = x["game_favorite_id"]
+            
+        if game_favorite_channel != None:
+            game = await roblox_client.get_place(game_favorite_id)
+            game_universe = await roblox_client.get_universe(game.universe.id)
+            embed_stats = nextcord.Embed(
+                title=game.name,
+                color=nextcord.Colour.blurple(),
+                description=f"⭐ Favorites: {game_universe.favorited_count}\n🧍 Players: {game_universe.playing}\n👨‍👨‍👦 Visits: {game_universe.visits}\n🛠 Creator: {game.builder}\n\n{nextcord.utils.escape_markdown(game.description)}\n\n[Link To {game.name}]({game.url})"
+            )
+            embed_stats.timestamp = datetime.now()
+            
+            embed_stats.set_image(url=f"https://www.roblox.com/asset-thumbnail/image?assetId={game.id}&width=768&height=432&format=png")
+            
+            
+            await ctx.reply(embed=embed_stats)
+        else:
+            embed=nextcord.Embed(
+                title="Server Info Error",
+                colour= nextcord.Colour.red(),
+                description=f'Server Info Favorites has not been setup!'
+            )
+                
+            embed.timestamp = datetime.now()    
+                
+            await ctx.reply(embed=embed)
     
     
     
