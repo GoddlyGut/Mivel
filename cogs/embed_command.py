@@ -1,4 +1,3 @@
-from turtle import title
 import nextcord
 from nextcord import Color, Guild, Member, member
 from nextcord.ext import commands

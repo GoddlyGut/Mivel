@@ -20,7 +20,7 @@ class roblox_features(commands.Cog):
             user = await roblox_client.get_user_by_username(username, expand=True)
         except:
             error_embed = Embed(
-                title="Error",
+                title="❌ Error",
                 color=nextcord.Colour.red(),
                 description="User not found!"
             )
