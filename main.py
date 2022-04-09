@@ -3,7 +3,8 @@ from nextcord.ext import commands
 import os
 import json
 from nextcord.utils import get
-
+from nextcord import Embed, Member
+from datetime import datetime
 
 intents = nextcord.Intents.all()
 intents.members = True
@@ -36,19 +37,25 @@ client = commands.Bot(command_prefix=prefix, intents=intents)
 
 @client.event
 async def on_ready():
-    # db = sqlite3.connect('roblox_userid.sqlite')
-    # cursor = db.cursor()
-    # cursor.execute('''
-    #                CREATE TABLE IF NOT EXISTS main(
-    #                    guild_id TEXT,
-    #                    role TEXT,
-    #                    Enabled TEXT
-    #                )
-    #                ''')
     print("Bot is ready.")
     client.remove_command('help')
-    game = nextcord.Game("Watching Commands")
     await client.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="/help"))
+
+
+    
+
+        
+@client.event
+async def on_command_error(ctx, error):
+    embed=nextcord.Embed(
+        title="❌ Error",
+        colour= nextcord.Colour.red(),
+        description=f"{error} | To see a list of available commands, please use `/help` for more info! If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
+    )
+                        
+    embed.timestamp = datetime.now()
+            
+    await ctx.reply(embed=embed)
 
 
 #################################

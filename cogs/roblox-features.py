@@ -20,7 +20,7 @@ class roblox_features(commands.Cog):
             user = await roblox_client.get_user_by_username(username, expand=True)
         except:
             error_embed = Embed(
-                title="Error",
+                title="❌ Error",
                 color=nextcord.Colour.red(),
                 description="User not found!"
             )
@@ -179,17 +179,17 @@ class roblox_features(commands.Cog):
             await interaction.response.send_message(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def verify_process(self, ctx):
+    async def verify(self, ctx):
         embed = nextcord.Embed(
-            title="Server Info",
+            title="📦 Available Setup Commands:",
             colour=nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!verify_proccess setup <@role>`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",
+            description="```m!verify setup <@role>```**Allows you to setup the verification system role**\n```m!verify disable```**Allows you to disable the verification system**\n```m!verify enable```**Allows you to enable the verification system**",
 
         )
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
 
-    @verify_process.command()
+    @verify.command()
     async def setup(self, ctx, role: nextcord.Role):
         if ctx.author.guild_permissions.administrator:
             
@@ -208,7 +208,7 @@ class roblox_features(commands.Cog):
             
 
             embed = Embed(
-                title="Verification Setup",
+                title="✅ Verification Setup",
                 color=nextcord.Colour.green(),
                 description=f"The verified role has been set to {role.mention}"
             )
@@ -219,7 +219,7 @@ class roblox_features(commands.Cog):
 
         else:
             embed_error_perms = nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour=nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -228,18 +228,8 @@ class roblox_features(commands.Cog):
 
             await ctx.reply(embed=embed_error_perms)
 
-    @setup.error
-    async def setup_error(self, ctx, error):
-        embed = nextcord.Embed(
-            title="Error",
-            colour=nextcord.Colour.red(),
-            description=error
-        )
 
-        embed.timestamp = datetime.now()
-        await ctx.reply(embed=embed)
-
-    @verify_process.command()
+    @verify.command()
     async def disable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -255,14 +245,14 @@ class roblox_features(commands.Cog):
             
             if role != None:
                 embed = Embed(
-                    title="Verification Setup",
+                    title="✅ Verification Setup",
                     color=nextcord.Colour.green(),
                     description=f"The verification system has been disabled!"
                 )
                 
                 if role is None:
                     embed_error=nextcord.Embed(
-                        title="Error",
+                        title="❌ Error",
                         colour= nextcord.Colour.red(),
                         description=f'Please finish setting up the verification system!'
                     )
@@ -279,7 +269,7 @@ class roblox_features(commands.Cog):
                 await ctx.reply(embed=embed)
             else:
                 embed_error_setup = nextcord.Embed(
-                    title="Verification Error",
+                    title="❌ Verification Error",
                     colour=nextcord.Colour.red(),
                     description="The verification system has not been setup!"
                 )
@@ -290,7 +280,7 @@ class roblox_features(commands.Cog):
                 
         else:
             embed_error_perms = nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour=nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -299,7 +289,7 @@ class roblox_features(commands.Cog):
 
             await ctx.reply(embed=embed_error_perms)
 
-    @verify_process.command()
+    @verify.command()
     async def enable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -315,14 +305,14 @@ class roblox_features(commands.Cog):
             
             if role != None:
                 embed = Embed(
-                    title="Verification Setup",
+                    title="✅ Verification Setup",
                     color=nextcord.Colour.green(),
                     description=f"The verification system has been enabled!"
                 )
                 
                 if role is None:
                     embed_error=nextcord.Embed(
-                        title="Error",
+                        title="❌ Error",
                         colour= nextcord.Colour.red(),
                         description=f'Please finish setting up the verification system!'
                     )
@@ -339,7 +329,7 @@ class roblox_features(commands.Cog):
                 await ctx.reply(embed=embed)
         else:
             embed_error_perms = nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour=nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -349,7 +339,7 @@ class roblox_features(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
 
     @nextcord.slash_command(name="verify", description="Use this command to link your roblox account with your discord account!")
-    async def verify(self, interaction: Interaction):
+    async def verify_command(self, interaction: Interaction):
         
         mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
         cluster = MongoClient(mongo_url)
@@ -401,7 +391,7 @@ class roblox_features(commands.Cog):
                     embed_setup.add_field(
                         name="Step 1", value="Please go to `roblox.com` and paste your username in this dm. You have 1 minute to complete this step.", inline=False)
                     embed_setup.add_field(
-                        name="Step 2", value="Once finished with the above step, paste this value into your roblox profile description `mivelverificationtext`. **Be sure to change this once you are completed with the verification process!**", inline=False)
+                        name="Step 2", value="Once finished with the above step, paste this value into your roblox profile description `verificationbotpasteconfirmaccount`. **Be sure to change this once you are completed with the verification process!**", inline=False)
                     embed_setup.add_field(
                         name="Step 3", value=f"Once finished with the above step, type `confirm` and you will be granted the verified role in {interaction.guild.name}", inline=False)
                     embed_setup.timestamp = datetime.now()
@@ -412,7 +402,7 @@ class roblox_features(commands.Cog):
                             msg = await self.client.wait_for('message', timeout=60.0, check=check)
                         except asyncio.TimeoutError:
                             embed_error_time = nextcord.Embed(
-                                title="Verification Error",
+                                title="❌ Verification Error",
                                 colour=nextcord.Colour.red(),
                                 description=f"Your time has ran out! Please re-run the `/verify` command in {interaction.guild.name}!"
                             )
@@ -433,13 +423,12 @@ class roblox_features(commands.Cog):
                         if isinstance(msg.channel, nextcord.channel.DMChannel):
                             if msg and msg.author != "Mivel":
                                 try:
-                                    print(str(msg.content))
                                     username = await roblox_client.get_user_by_username(str(msg.content), expand=True)
                                 except:
                                     embed_fail = Embed(
-                                        title="Verification Error",
+                                        title="❌ Verification Error",
                                         color=nextcord.Color.red(),
-                                        description=f"You did not type a correct username. Please re-run the verification process in {interaction.guild.name}."
+                                        description=f"You did not type a correct username. Please re-run the verification process in {interaction.guild.name}. If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
                                     )
 
                                     embed_fail.timestamp = datetime.now()
@@ -457,19 +446,19 @@ class roblox_features(commands.Cog):
 
 
                                 embed_success_one = Embed(
-                                    title="Step 1 Completed",
+                                    title="✅ Step 1 Completed",
                                     color=nextcord.Color.green(),
-                                    description="You completed step 1 successfully! For the next step, paste `mivelverificationtext` into your roblox profile description and type `confirm` here. You have 2 minutes to complete this step. To cancel, simply type `cancel`."
+                                    description="You completed step 1 successfully! For the next step, paste `verificationbotpasteconfirmaccount` into your roblox profile description and type `confirm` here. You have 2 minutes to complete this step. To cancel, simply type `cancel`."
                                 )
 
                                 embed_success_one.timestamp = datetime.now()
-                                print("yes")
+                                
                                 await msg.reply(embed=embed_success_one)
                                 try:
                                     msg_confirm = await self.client.wait_for('message', timeout=120.0, check=check)
                                 except asyncio.TimeoutError:
                                     embed_error_time = nextcord.Embed(
-                                        title="Verification Error",
+                                        title="❌ Verification Error",
                                         colour=nextcord.Colour.red(),
                                         description=f"Your time has ran out! Please re-run the `/verify` command in {interaction.guild.name}!"
                                     )
@@ -491,9 +480,9 @@ class roblox_features(commands.Cog):
                                     if msg_confirm.content.lower() == "confirm":
                                         updated_username = await roblox_client.get_user_by_username(str(username.name), expand=True)
 
-                                        if updated_username.description == "mivelverificationtext":
+                                        if updated_username.description == "verificationbotpasteconfirmaccount":
                                             embed_success_two = Embed(
-                                                title="Verification Completed",
+                                                title="✅ Verification Completed",
                                                 color=nextcord.Color.green(),
                                                 description=f"You have completed the verification process! The roblox account you linked is `@{username.name}`. You now have the verified role in {interaction.guild.name}"
                                             )
@@ -553,7 +542,6 @@ class roblox_features(commands.Cog):
                                                 user_userid_collection.insert_one(roblox_info)
                                             except:
                                                 user_userid_collection.update({"_id":interaction.user.id},{"$set":{"roblox_user_id": updated_username.id}})
-                                            print(role)
                                             
                                             role_val = nextcord.utils.get(interaction.guild.roles, id=role)
                                             await interaction.user.add_roles(role_val)
@@ -563,9 +551,9 @@ class roblox_features(commands.Cog):
 
 
                                             embed_fail_two = Embed(
-                                                title="Verification Error",
+                                                title="❌ Verification Error",
                                                 color=nextcord.Color.red(),
-                                                description=f"You did not type the correct text into your roblox profile description. Be sure to type `mivelverificationtext`. Please re-run the verification process in {interaction.guild.name}."
+                                                description=f"You did not type the correct text into your roblox profile description. Be sure to type `verificationbotpasteconfirmaccount`. Please re-run the verification process in {interaction.guild.name}. If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
                                             )
                                             embed_fail_two.timestamp = datetime.now()
 
@@ -580,7 +568,7 @@ class roblox_features(commands.Cog):
                                             break
                                     else:
                                         embed_quit = Embed(
-                                            title="Verification Quit",
+                                            title="❌ Verification Quit",
                                             color=nextcord.Color.red(),
                                             description=f"You have successfully quit the verification process"
                                         )
@@ -599,7 +587,7 @@ class roblox_features(commands.Cog):
 
                 else:
                     embed_error_progress = nextcord.Embed(
-                        title="Verification Error",
+                        title="❌ Verification Error",
                         colour=nextcord.Colour.red(),
                         description="You already are in the verification process!"
                     )
@@ -610,7 +598,7 @@ class roblox_features(commands.Cog):
 
             else:
                 embed_error_disable = nextcord.Embed(
-                    title="Verification Error",
+                    title="❌ Verification Error",
                     colour=nextcord.Colour.red(),
                     description="The verification system has been disabled!"
                 )
@@ -619,7 +607,7 @@ class roblox_features(commands.Cog):
                 await interaction.response.send_message(embed=embed_error_disable)
         else:
             embed_error_setup = nextcord.Embed(
-                title="Verification Error",
+                title="❌ Verification Error",
                 colour=nextcord.Colour.red(),
                 description="The verification system has not been setup!"
             )

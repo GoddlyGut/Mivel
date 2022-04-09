@@ -30,7 +30,7 @@ class suggestions(commands.Cog):
         
         if channel is None:
             embed_error=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description=f'Please finish setting up the suggestion system!'
             )
@@ -41,7 +41,7 @@ class suggestions(commands.Cog):
         else:
             if enabled == False:
                 embed_not_enabled=nextcord.Embed(
-                    title="Suggestion System",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description="Suggestion system has been disabled!"
                 )   
@@ -68,7 +68,7 @@ class suggestions(commands.Cog):
                     
                     
                 embed_success=nextcord.Embed(
-                    title="Suggestion Sent",
+                    title="✅ Suggestion Sent",
                     colour= nextcord.Colour.green(),
                     description=f"Suggestion submitted to {channel_val.mention}"
                 )
@@ -79,16 +79,16 @@ class suggestions(commands.Cog):
     
     
     @commands.group(invoke_without_command=True)
-    async def suggest_settings(self, ctx):
+    async def suggestion(self, ctx):
         embed=nextcord.Embed(
-            title="Suggest Settings Info",
+            title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands: \n`m!suggest_settings channel <#channel>`\n`m!suggest_settings disable`\n`m!suggest_settings enable`"
+            description="```m!suggestion channel <#channel>```**Sets a suggestion channel**\n```m!suggestion disable```**Disables suggestions system**\n```m!suggestion enable```**Enables suggestions system**"
         )      
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
     
-    @suggest_settings.command()
+    @suggestion.command()
     async def channel(self, ctx, channel:nextcord.TextChannel):
         if ctx.message.author.guild_permissions.manage_messages:
 
@@ -111,7 +111,7 @@ class suggestions(commands.Cog):
             
             
             embed=nextcord.Embed(
-                title="Suggest Info Updated",
+                title="✅ Suggest Info Updated",
                 colour= nextcord.Colour.green(),
                 description=f"Channel has been set to {channel.mention}"
             )
@@ -122,7 +122,7 @@ class suggestions(commands.Cog):
                 
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -131,21 +131,10 @@ class suggestions(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms) 
     
-    @channel.error
-    async def channel_error(self,ctx, error):
-        embed=nextcord.Embed(
-                title="Error",
-                colour= nextcord.Colour.red(),
-                description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
         
         
         
-    @suggest_settings.command()
+    @suggestion.command()
     async def disable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
@@ -164,7 +153,7 @@ class suggestions(commands.Cog):
             
             if channel is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the suggestion system!'
                 )
@@ -178,7 +167,7 @@ class suggestions(commands.Cog):
             
 
             embed=nextcord.Embed(
-                title="Suggest Settings Updated",
+                title="✅ Suggest Settings Updated",
                 colour= nextcord.Colour.green(),
                 description=f'Suggest system has been disabled!'
             )
@@ -189,7 +178,7 @@ class suggestions(commands.Cog):
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -198,7 +187,7 @@ class suggestions(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
         
-    @suggest_settings.command()
+    @suggestion.command()
     async def enable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
@@ -217,7 +206,7 @@ class suggestions(commands.Cog):
             
             if channel is None:
                 embed_error=nextcord.Embed(
-                    title="Error",
+                    title="❌ Error",
                     colour= nextcord.Colour.red(),
                     description=f'Please finish setting up the suggestion system!'
                 )
@@ -231,7 +220,7 @@ class suggestions(commands.Cog):
             
 
             embed=nextcord.Embed(
-                title="Suggest Settings Updated",
+                title="✅ Suggest Settings Updated",
                 colour= nextcord.Colour.green(),
                 description=f'Suggest system has been enabled!'
             )
@@ -242,7 +231,7 @@ class suggestions(commands.Cog):
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
