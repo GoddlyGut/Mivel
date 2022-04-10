@@ -9,6 +9,7 @@ import asyncio
 roblox_client = roblox.Client("6E2C0CF7F4F7E2DCB1709C167EF155C4DCF29DCA9D9F2B91D9908D28B091941597004A87F31D06522D8BFAE02550F523549B290EEA74A2BB0FC9DC47B5818FA1625230B9C2D3F5C51DE9353670E1F5C34FE6D30A61E28EA6E4E7207C75D3BBBDA2956AAF252624EB2FAABA55F0986971AD106E8132ACCBB3C233F003B44BD55EEC52AE97843AD825B527BF29EA849115F7EFE9C3AEE89901BBE7CEB312FED484D9F633882C03111A6757E44C887845291CB3EB639ACFFD6CAE46554B76C8901A290C1BB20A11446C283C2145C3A2DC428399E5B4C6FA1E96331F9058B662734CD7254223304A56115A26216B1292216888383DED91236A6EAE291D85B7D6BA1AE020344B645A83D8C52B691FA3E82415794C4C9C198A97BAFFEE4733A6ECFCE8ED17296E455E7FBE10A5144555023E6BBA36708047CAEC2E016B4369CBFC9B54E333C2F4C27202F0F009A2EB51F6FAE5845F12CE1F3FF20AAC885B8BAD8D16AD473E9A3F")
 import pymongo
 from pymongo import MongoClient
+import requests
 
 
 
@@ -326,7 +327,8 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-            
+    
+
             
     @stats.command()
     async def setup_game(self, ctx):
@@ -343,124 +345,174 @@ class server_info(commands.Cog):
             group_channel = None
             game_favorite_channel = None
             
-            embed_setup_game= nextcord.Embed(
-                title="" ,  
-                colour=nextcord.Colour.blurple(),
-                description=f"Please enter a `PlaceId` to setup this feature!"
-            )
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
 
-            embed_setup_game.timestamp = datetime.now()
 
-            await ctx.send(embed=embed_setup_game)
+            if game_channel is None:
 
-            def check(m):
-                return ctx.author == m.author
+                embed_setup_game= nextcord.Embed(
+                    title="" ,  
+                    colour=nextcord.Colour.blurple(),
+                    description=f"Please enter a `PlaceId` or `Game Name` to setup this feature!"
+                )
 
-            while True:
-                try:
-                    msg = await self.client.wait_for('message', timeout=60.0, check=check)
-                except asyncio.TimeoutError:
-                    embed_error_time = nextcord.Embed(
-                        title="❌ Verification Error",
-                        colour=nextcord.Colour.red(),
-                        description=f"Your time has ran out!"
-                    )
+                embed_setup_game.timestamp = datetime.now()
 
-                    embed_error_time.timestamp = datetime.now()
+                await ctx.send(embed=embed_setup_game)
 
-                    await ctx.send(embed=embed_error_time)
+                def check(m):
+                    return ctx.author == m.author
 
-                    break
-
-                if msg and msg.author != "Mivel":
+                while True:
                     try:
-                        place = await roblox_client.get_place(int(msg.content))
-                    except:
-                        embed_error_none=nextcord.Embed(
-                            title="❌ Error",
-                            colour= nextcord.Colour.red(),
-                            description="No place found! Make sure it is the `PlaceId`!"
+                        msg = await self.client.wait_for('message', timeout=60.0, check=check)
+                    except asyncio.TimeoutError:
+                        embed_error_time = nextcord.Embed(
+                            title="❌ Verification Error",
+                            colour=nextcord.Colour.red(),
+                            description=f"Your time has ran out!"
                         )
-                                
-                        embed_error_none.timestamp = datetime.now()
-                        
-                        await ctx.reply(embed=embed_error_none)
+
+                        embed_error_time.timestamp = datetime.now()
+
+                        await ctx.send(embed=embed_error_time)
+
                         break
 
-                    universe = await roblox_client.get_universe(place.universe.id)
-
-                    embed_loading=nextcord.Embed(
-                        title="",
-                        colour= nextcord.Colour.blurple(),
-                        description=f'🔎 Retrieving Game Data...'
-                    )
-
-                    message_temp = await ctx.reply(embed=embed_loading)
-                    
-                    for x in collection.find({"_id": ctx.guild.id}):
-                        member_channel = x["member_channel"]
-                        bot_channel = x["bot_channel"]
-                        game_channel = x["game_channel"]
-                        group_channel = x["group_channel"]
-                        game_favorite_channel = x["game_favorite_channel"]
-                        
-                    if game_channel is None:
-                        overwrites={
-                            ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
-                        }
-                        
-                        if member_channel is None and bot_channel is None and group_channel is None and game_favorite_channel is None:    
-                            category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                        else: 
-                            if member_channel != None:
-                                category = self.client.get_channel(member_channel).category
+                    if msg and msg.author != "Mivel":
+                        if msg.content.isnumeric():            
+                            try:
+                                place = await roblox_client.get_place(int(msg.content))
+                            except:
+                                embed_error_none=nextcord.Embed(
+                                    title="❌ Error",
+                                    colour= nextcord.Colour.red(),
+                                    description="No place found! Make sure it is the `PlaceId`!"
+                                )
+                                        
+                                embed_error_none.timestamp = datetime.now()
                                 
-                            if bot_channel != None:
-                                category = self.client.get_channel(bot_channel).category
-                                
-                            if group_channel != None:
-                                category = self.client.get_channel(group_channel).category
+                                await ctx.reply(embed=embed_error_none)
+                                break
+                        else:
+                            game_req = requests.get(f"https://games.roblox.com/v1/games/list?model.keyword={msg.content}")
+                            game_data = game_req.json()
                             
-                            if game_favorite_channel != None:
-                                category = self.client.get_channel(game_favorite_channel).category
-                                
-                                
+                            place = await roblox_client.get_place(int(game_data["games"][0]["placeId"]))
 
-                        game_info = universe.playing
-                        channel = await ctx.guild.create_voice_channel(name=f"Players: {game_info}", category=category)
-                        
-                        channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":channel.id,"game_id":int(msg.content),"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}
-                        
-                        try:
-                            collection.insert_one(channel_info)
-                        except:
-                            collection.update({"_id":ctx.guild.id},{"$set":{"game_channel":channel.id}})
-                            collection.update({"_id":ctx.guild.id},{"$set":{"game_id":int(msg.content)}})
-                            
-                        await message_temp.delete()
-                        
-                        embed=nextcord.Embed(
-                            title="✅ Server Info Updated",
-                            colour= nextcord.Colour.blurple(),
-                            description=f'Server Info Game Channel Created! **Now tracking {place.name}!** For more info on this game, run the command `m!stats return_game`! Note that the channel updates every 30 minutes.'
+
+                        embed_check=nextcord.Embed(
+                            title="",
+                            color=nextcord.Color.blurple(),
+                            description=f"❓ Is the game you chose {place.name}?"
                         )
                         
-                        embed.timestamp = datetime.now()
-                        
-                        await ctx.reply(embed=embed)
 
-                        break
-                    else:
-                        embed_error=nextcord.Embed(
-                            title="❌ Server Info Error",
-                            colour= nextcord.Colour.red(),
-                            description=f'Server Info Game has already been setup!'
-                        )
-                        
-                        await ctx.reply(embed=embed_error)
+                        yes_button=Button(label="Yes", style=nextcord.ButtonStyle.green)
+                        no_button=Button(label="No", style=nextcord.ButtonStyle.red)
+                        link_button=Button(label=f"Link To {place.name}", url=place.url)
 
-                        break
+                        view=View()
+                        view.add_item(yes_button)
+                        view.add_item(no_button)
+                        view.add_item(link_button)
+
+                        await msg.reply(embed=embed_check, view=view)
+
+
+                        async def yes_button_callback(interaction):
+                            view.stop()
+
+                            universe = await roblox_client.get_universe(place.universe.id)
+
+                            embed_loading=nextcord.Embed(
+                                title="",
+                                colour= nextcord.Colour.blurple(),
+                                description=f'🔎 Retrieving Game Data...'
+                            )
+
+                            message_temp = await ctx.reply(embed=embed_loading)
                             
+
+                                
+                            if game_channel is None:
+                                overwrites={
+                                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                                }
+                                
+                                if member_channel is None and bot_channel is None and group_channel is None and game_favorite_channel is None:    
+                                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                                else: 
+                                    if member_channel != None:
+                                        category = self.client.get_channel(member_channel).category
+                                        
+                                    if bot_channel != None:
+                                        category = self.client.get_channel(bot_channel).category
+                                        
+                                    if group_channel != None:
+                                        category = self.client.get_channel(group_channel).category
+                                    
+                                    if game_favorite_channel != None:
+                                        category = self.client.get_channel(game_favorite_channel).category
+                                        
+                                        
+
+                                game_info = universe.playing
+                                channel = await ctx.guild.create_voice_channel(name=f"Players: {game_info}", category=category)
+                                
+                                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":channel.id,"game_id":place.id,"group_channel":None, "group_id":None, "game_favorite_channel":None,"game_favorite_id":None}
+                                
+                                try:
+                                    collection.insert_one(channel_info)
+                                except:
+                                    collection.update({"_id":ctx.guild.id},{"$set":{"game_channel":channel.id}})
+                                    collection.update({"_id":ctx.guild.id},{"$set":{"game_id":int(place.id)}})
+                                    
+                                await message_temp.delete()
+                                
+                                embed=nextcord.Embed(
+                                    title="✅ Server Info Updated",
+                                    colour= nextcord.Colour.blurple(),
+                                    description=f'Server Info Game Channel Created! **Now tracking {place.name}!** For more info on this game, run the command `m!stats return_game`! Note that the channel updates every 30 minutes.'
+                                )
+                                
+                                embed.timestamp = datetime.now()
+                                
+                                await ctx.reply(embed=embed)
+                                
+
+                        async def no_button_callback(interaction):
+                            view.stop()
+
+                            embed_error_repeat=nextcord.Embed(
+                                title="",
+                                color=nextcord.Colour.red(),
+                                description="Hmm. Maybe try running the command again?"
+                            )
+
+                            await ctx.send(embed=embed_error_repeat)
+
+
+                        yes_button.callback = yes_button_callback
+                        no_button.callback = no_button_callback
+                        
+                        break
+                        
+            else:
+                embed_error=nextcord.Embed(
+                    title="❌ Server Info Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Server Info Game has already been setup!'
+                )
+                            
+                await ctx.reply(embed=embed_error)
+
+                return
         else:
             embed_error_perms=nextcord.Embed(
                 title="❌ Error",
@@ -471,6 +523,8 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
+
+            return
 
             
             
@@ -545,7 +599,7 @@ class server_info(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
     
-            
+
     @stats.command()
     async def setup_group(self, ctx):
         if ctx.author.guild_permissions.administrator:
@@ -561,124 +615,167 @@ class server_info(commands.Cog):
             group_channel = None
             game_favorite_channel = None
             
-            embed_setup_game= nextcord.Embed(
-                title="" ,  
-                colour=nextcord.Colour.blurple(),
-                description=f"Please enter a `GroupId` to setup this feature!"
-            )
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
+            
 
-            embed_setup_game.timestamp = datetime.now()
+            if group_channel is None:
 
-            await ctx.send(embed=embed_setup_game)
+                embed_setup_game= nextcord.Embed(
+                    title="" ,  
+                    colour=nextcord.Colour.blurple(),
+                    description=f"Please enter a `GroupId` to setup this feature!"
+                )
 
-            def check(m):
-                return ctx.author == m.author
+                embed_setup_game.timestamp = datetime.now()
 
-            while True:
-                try:
-                    msg = await self.client.wait_for('message', timeout=60.0, check=check)
-                except asyncio.TimeoutError:
-                    embed_error_time = nextcord.Embed(
-                        title="❌ Verification Error",
-                        colour=nextcord.Colour.red(),
-                        description=f"Your time has ran out!"
-                    )
+                await ctx.send(embed=embed_setup_game)
 
-                    embed_error_time.timestamp = datetime.now()
+                def check(m):
+                    return ctx.author == m.author
 
-                    await ctx.send(embed=embed_error_time)
-
-                    break
-
-                if msg and msg.author != "Mivel":
+                while True:
                     try:
-                        group = await roblox_client.get_group(int(msg.content))
-                    except:
-                        embed_error_none=nextcord.Embed(
-                            title="❌ Error",
-                            colour= nextcord.Colour.red(),
-                            description="No group found! Make sure it is the `GroupId`!"
+                        msg = await self.client.wait_for('message', timeout=60.0, check=check)
+                    except asyncio.TimeoutError:
+                        embed_error_time = nextcord.Embed(
+                            title="❌ Verification Error",
+                            colour=nextcord.Colour.red(),
+                            description=f"Your time has ran out!"
                         )
-                                
-                        embed_error_none.timestamp = datetime.now()
-                        
-                        await ctx.reply(embed=embed_error_none)
+
+                        embed_error_time.timestamp = datetime.now()
+
+                        await ctx.send(embed=embed_error_time)
+
                         break
 
-
-
-                    embed_loading=nextcord.Embed(
-                        title="",
-                        colour= nextcord.Colour.blurple(),
-                        description=f'🔎 Retrieving Group Data...'
-                    )
-
-                    message_temp = await ctx.reply(embed=embed_loading)
-                    
-                    for x in collection.find({"_id": ctx.guild.id}):
-                        member_channel = x["member_channel"]
-                        bot_channel = x["bot_channel"]
-                        game_channel = x["game_channel"]
-                        group_channel = x["group_channel"]
-                        game_favorite_channel = x["game_favorite_channel"]
-                        
-                    if group_channel is None:
-                        overwrites={
-                            ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
-                        }
-                        
-                        if member_channel is None and bot_channel is None and game_channel is None and game_favorite_channel is None:    
-                            category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                        else: 
-                            if member_channel != None:
-                                category = self.client.get_channel(member_channel).category
-                                
-                            if bot_channel != None:
-                                category = self.client.get_channel(bot_channel).category
-                                
-                            if game_channel != None:
-                                category = self.client.get_channel(game_channel).category
-                            
-                            if game_favorite_channel != None:
-                                category = self.client.get_channel(game_favorite_channel).category
-                                
-                                
-
-                        group_info = group.member_count
-                        channel = await ctx.guild.create_voice_channel(name=f"Group: {group.member_count}", category=category)
-                        
-                        channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":channel.id, "group_id":group.id, "game_favorite_channel":None,"game_favorite_id":None}
-                        
+                    if msg and msg.author != "Mivel":
+                                  
                         try:
-                            collection.insert_one(channel_info)
+                            group = await roblox_client.get_group(int(msg.content))
                         except:
-                            collection.update({"_id":ctx.guild.id},{"$set":{"group_channel":channel.id}})
-                            collection.update({"_id":ctx.guild.id},{"$set":{"group_id":group.id}})
+                            embed_error_none=nextcord.Embed(
+                                title="❌ Error",
+                                colour= nextcord.Colour.red(),
+                                description="No group found! Make sure it is the `GroupId`!"
+                            )
+                                    
+                            embed_error_none.timestamp = datetime.now()
                             
-                        await message_temp.delete()
-                        
-                        embed=nextcord.Embed(
-                            title="✅ Server Info Updated",
-                            colour= nextcord.Colour.blurple(),
-                            description=f'Server Info Group Channel Created! **Now tracking {group.name}!** For more info on this group, run the command `m!stats return_group`! Note that the channel updates every 30 minutes.'
+                            await ctx.reply(embed=embed_error_none)
+                            break
+
+
+                        embed_check=nextcord.Embed(
+                            title="",
+                            color=nextcord.Color.blurple(),
+                            description=f"❓ Is the group you chose {group.name}?"
                         )
                         
-                        embed.timestamp = datetime.now()
-                        
-                        await ctx.reply(embed=embed)
 
-                        break
-                    else:
-                        embed_error=nextcord.Embed(
-                            title="❌ Server Info Error",
-                            colour= nextcord.Colour.red(),
-                            description=f'Server Info Group has already been setup!'
-                        )
-                        
-                        await ctx.reply(embed=embed_error)
+                        yes_button=Button(label="Yes", style=nextcord.ButtonStyle.green)
+                        no_button=Button(label="No", style=nextcord.ButtonStyle.red)
+                        link_button=Button(label=f"Link To {group.name}", url=f"https://www.roblox.com/groups/{group.id}")
 
-                        break
+                        view=View()
+                        view.add_item(yes_button)
+                        view.add_item(no_button)
+                        view.add_item(link_button)
+
+                        await msg.reply(embed=embed_check, view=view)
+
+
+                        async def yes_button_callback(interaction):
+                            view.stop()
+
+
+                            embed_loading=nextcord.Embed(
+                                title="",
+                                colour= nextcord.Colour.blurple(),
+                                description=f'🔎 Retrieving Group Data...'
+                            )
+
+                            message_temp = await ctx.reply(embed=embed_loading)
                             
+
+                                
+                            if group_channel is None:
+                                overwrites={
+                                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                                }
+                                
+                                if member_channel is None and bot_channel is None and game_channel is None and game_favorite_channel is None:    
+                                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                                else: 
+                                    if member_channel != None:
+                                        category = self.client.get_channel(member_channel).category
+                                        
+                                    if bot_channel != None:
+                                        category = self.client.get_channel(bot_channel).category
+                                        
+                                    if game_channel != None:
+                                        category = self.client.get_channel(game_channel).category
+                                    
+                                    if game_favorite_channel != None:
+                                        category = self.client.get_channel(game_favorite_channel).category
+                                        
+                                        
+
+                                channel = await ctx.guild.create_voice_channel(name=f"Group: {group.member_count}", category=category)
+                                
+                                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":channel.id, "group_id":group.id, "game_favorite_channel":None,"game_favorite_id":None}
+                                
+                                try:
+                                    collection.insert_one(channel_info)
+                                except:
+                                    collection.update({"_id":ctx.guild.id},{"$set":{"group_channel":channel.id}})
+                                    collection.update({"_id":ctx.guild.id},{"$set":{"group_id":int(group.id)}})
+                                    
+                                await message_temp.delete()
+                                
+                                embed=nextcord.Embed(
+                                    title="✅ Server Info Updated",
+                                    colour= nextcord.Colour.blurple(),
+                                    description=f'Server Info Group Channel Created! **Now tracking {group.name}!** For more info on this group, run the command `m!stats return_group`! Note that the channel updates every 30 minutes.'
+                                )
+                                
+                                embed.timestamp = datetime.now()
+                                
+                                await ctx.reply(embed=embed)
+                                
+
+                        async def no_button_callback(interaction):
+                            view.stop()
+
+                            embed_error_repeat=nextcord.Embed(
+                                title="",
+                                color=nextcord.Colour.red(),
+                                description="Hmm. Maybe try running the command again?"
+                            )
+
+                            await ctx.send(embed=embed_error_repeat)
+
+
+                        yes_button.callback = yes_button_callback
+                        no_button.callback = no_button_callback
+                        
+                        break
+                        
+            else:
+                embed_error=nextcord.Embed(
+                    title="❌ Server Info Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Server Info Group has already been setup!'
+                )
+                            
+                await ctx.reply(embed=embed_error)
+
+                return
         else:
             embed_error_perms=nextcord.Embed(
                 title="❌ Error",
@@ -689,6 +786,8 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
+
+            return
 
     
     
@@ -766,7 +865,7 @@ class server_info(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
             
 
-
+     
     @stats.command()
     async def setup_favorites(self, ctx):
         if ctx.author.guild_permissions.administrator:
@@ -782,124 +881,173 @@ class server_info(commands.Cog):
             group_channel = None
             game_favorite_channel = None
             
-            embed_setup_game= nextcord.Embed(
-                title="" ,  
-                colour=nextcord.Colour.blurple(),
-                description=f"Please enter a `PlaceId` to setup this feature!"
-            )
+            for x in collection.find({"_id": ctx.guild.id}):
+                member_channel = x["member_channel"]
+                bot_channel = x["bot_channel"]
+                game_channel = x["game_channel"]
+                group_channel = x["group_channel"]
+                game_favorite_channel = x["game_favorite_channel"]
 
-            embed_setup_game.timestamp = datetime.now()
+            if game_favorite_channel is None:
 
-            await ctx.send(embed=embed_setup_game)
+                embed_setup_game= nextcord.Embed(
+                    title="" ,  
+                    colour=nextcord.Colour.blurple(),
+                    description=f"Please enter a `PlaceId` or `Game Name` to setup this feature!"
+                )
 
-            def check(m):
-                return ctx.author == m.author
+                embed_setup_game.timestamp = datetime.now()
 
-            while True:
-                try:
-                    msg = await self.client.wait_for('message', timeout=60.0, check=check)
-                except asyncio.TimeoutError:
-                    embed_error_time = nextcord.Embed(
-                        title="❌ Verification Error",
-                        colour=nextcord.Colour.red(),
-                        description=f"Your time has ran out!"
-                    )
+                await ctx.send(embed=embed_setup_game)
 
-                    embed_error_time.timestamp = datetime.now()
+                def check(m):
+                    return ctx.author == m.author
 
-                    await ctx.send(embed=embed_error_time)
-
-                    break
-
-                if msg and msg.author != "Mivel":
+                while True:
                     try:
-                        place = await roblox_client.get_place(int(msg.content))
-                    except:
-                        embed_error_none=nextcord.Embed(
-                            title="❌ Error",
-                            colour= nextcord.Colour.red(),
-                            description="No place found! Make sure it is the `PlaceId`!"
+                        msg = await self.client.wait_for('message', timeout=60.0, check=check)
+                    except asyncio.TimeoutError:
+                        embed_error_time = nextcord.Embed(
+                            title="❌ Verification Error",
+                            colour=nextcord.Colour.red(),
+                            description=f"Your time has ran out!"
                         )
-                                
-                        embed_error_none.timestamp = datetime.now()
-                        
-                        await ctx.reply(embed=embed_error_none)
+
+                        embed_error_time.timestamp = datetime.now()
+
+                        await ctx.send(embed=embed_error_time)
+
                         break
 
-                    universe = await roblox_client.get_universe(place.universe.id)
-
-                    embed_loading=nextcord.Embed(
-                        title="",
-                        colour= nextcord.Colour.blurple(),
-                        description=f'🔎 Retrieving Game Favorites Data...'
-                    )
-
-                    message_temp = await ctx.reply(embed=embed_loading)
-                    
-                    for x in collection.find({"_id": ctx.guild.id}):
-                        member_channel = x["member_channel"]
-                        bot_channel = x["bot_channel"]
-                        game_channel = x["game_channel"]
-                        group_channel = x["group_channel"]
-                        game_favorite_channel = x["game_favorite_channel"]
-                        
-                    if game_channel is None:
-                        overwrites={
-                            ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
-                        }
-                        
-                        if member_channel is None and bot_channel is None and group_channel is None and game_channel is None:    
-                            category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
-                        else: 
-                            if member_channel != None:
-                                category = self.client.get_channel(member_channel).category
+                    if msg and msg.author != "Mivel":
+                        if msg.content.isnumeric():            
+                            try:
+                                place = await roblox_client.get_place(int(msg.content))
+                            except:
+                                embed_error_none=nextcord.Embed(
+                                    title="❌ Error",
+                                    colour= nextcord.Colour.red(),
+                                    description="No place found! Make sure it is the `PlaceId`!"
+                                )
+                                        
+                                embed_error_none.timestamp = datetime.now()
                                 
-                            if bot_channel != None:
-                                category = self.client.get_channel(bot_channel).category
-                                
-                            if group_channel != None:
-                                category = self.client.get_channel(group_channel).category
+                                await ctx.reply(embed=embed_error_none)
+                                break
+                        else:
+                            game_req = requests.get(f"https://games.roblox.com/v1/games/list?model.keyword={msg.content}")
+                            game_data = game_req.json()
                             
-                            if game_channel != None:
-                                category = self.client.get_channel(game_channel).category
-                                
-                                
+                            place = await roblox_client.get_place(int(game_data["games"][0]["placeId"]))
 
-                        game_info = universe.favorited_count
-                        channel = await ctx.guild.create_voice_channel(name=f"Favorites: {game_info}", category=category)
-                        
-                        channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":channel.id,"game_favorite_id":int(msg.content)}
-                        
-                        try:
-                            collection.insert_one(channel_info)
-                        except:
-                            collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_channel":channel.id}})
-                            collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_id":int(msg.content)}})
-                            
-                        await message_temp.delete()
-                        
-                        embed=nextcord.Embed(
-                            title="✅ Server Info Updated",
-                            colour= nextcord.Colour.blurple(),
-                            description=f'Server Info Game Favorite Channel Created! **Now tracking {place.name}!** For more info on this game, run the command `m!stats return_favorites`! Note that the channel updates every 30 minutes.'
+
+                        embed_check=nextcord.Embed(
+                            title="",
+                            color=nextcord.Color.blurple(),
+                            description=f"❓ Is the game you chose {place.name}?"
                         )
                         
-                        embed.timestamp = datetime.now()
-                        
-                        await ctx.reply(embed=embed)
 
-                        break
-                    else:
-                        embed_error=nextcord.Embed(
-                            title="❌ Server Info Error",
-                            colour= nextcord.Colour.red(),
-                            description=f'Server Info Game Favorites has already been setup!'
-                        )
-                        
-                        await ctx.reply(embed=embed_error)
+                        yes_button=Button(label="Yes", style=nextcord.ButtonStyle.green)
+                        no_button=Button(label="No", style=nextcord.ButtonStyle.red)
+                        link_button=Button(label=f"Link To {place.name}", url=place.url)
 
-                        break
+                        view=View()
+                        view.add_item(yes_button)
+                        view.add_item(no_button)
+                        view.add_item(link_button)
+
+                        await msg.reply(embed=embed_check, view=view)
+
+
+                        async def yes_button_callback(interaction):
+                            view.stop()
+
+                            universe = await roblox_client.get_universe(place.universe.id)
+
+                            embed_loading=nextcord.Embed(
+                                title="",
+                                colour= nextcord.Colour.blurple(),
+                                description=f'🔎 Retrieving Game Data...'
+                            )
+
+                            message_temp = await ctx.reply(embed=embed_loading)
                             
+
+                                
+                            if game_favorite_channel is None:
+                                overwrites={
+                                    ctx.guild.default_role: nextcord.PermissionOverwrite(connect=False),
+                                }
+                                
+                                if member_channel is None and bot_channel is None and group_channel is None and game_channel is None:    
+                                    category = await ctx.guild.create_category(name=f"{ctx.guild.name} Info", position=0, overwrites=overwrites)
+                                else: 
+                                    if member_channel != None:
+                                        category = self.client.get_channel(member_channel).category
+                                        
+                                    if bot_channel != None:
+                                        category = self.client.get_channel(bot_channel).category
+                                        
+                                    if group_channel != None:
+                                        category = self.client.get_channel(group_channel).category
+                                    
+                                    if game_channel != None:
+                                        category = self.client.get_channel(game_channel).category
+                                        
+                                        
+
+                                
+                                channel = await ctx.guild.create_voice_channel(name=f"Favorites: {universe.favorited_count}", category=category)
+                                
+                                channel_info = {"_id":ctx.guild.id, "member_channel":None, "bot_channel":None,"game_channel":None,"game_id":None,"group_channel":None, "group_id":None, "game_favorite_channel":channel.id,"game_favorite_id":place.id}
+                                
+                                try:
+                                    collection.insert_one(channel_info)
+                                except:
+                                    collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_channel":channel.id}})
+                                    collection.update({"_id":ctx.guild.id},{"$set":{"game_favorite_id":int(place.id)}})
+                                    
+                                await message_temp.delete()
+                                
+                                embed=nextcord.Embed(
+                                    title="✅ Server Info Updated",
+                                    colour= nextcord.Colour.blurple(),
+                                    description=f'Server Info Favorites Channel Created! **Now tracking {place.name}!** For more info on this game, run the command `m!stats return_game`! Note that the channel updates every 30 minutes.'
+                                )
+                                
+                                embed.timestamp = datetime.now()
+                                
+                                await ctx.reply(embed=embed)
+                                
+
+                        async def no_button_callback(interaction):
+                            view.stop()
+
+                            embed_error_repeat=nextcord.Embed(
+                                title="",
+                                color=nextcord.Colour.red(),
+                                description="Hmm. Maybe try running the command again?"
+                            )
+
+                            await ctx.send(embed=embed_error_repeat)
+
+
+                        yes_button.callback = yes_button_callback
+                        no_button.callback = no_button_callback
+                        
+                        break
+                        
+            else:
+                embed_error=nextcord.Embed(
+                    title="❌ Server Info Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Server Info Favorites has already been setup!'
+                )
+                            
+                await ctx.reply(embed=embed_error)
+
+                return
         else:
             embed_error_perms=nextcord.Embed(
                 title="❌ Error",
@@ -910,7 +1058,8 @@ class server_info(commands.Cog):
             embed_error_perms.timestamp = datetime.now()
             
             await ctx.reply(embed=embed_error_perms)
-            
+
+            return
 
 
     @stats.command()
