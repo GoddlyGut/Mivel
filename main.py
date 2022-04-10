@@ -45,17 +45,17 @@ async def on_ready():
     
 
         
-# @client.event
-# async def on_command_error(ctx, error):
-#     embed=nextcord.Embed(
-#         title="❌ Error",
-#         colour= nextcord.Colour.red(),
-#         description=f"{error} | To see a list of available commands, please use `/help` for more info! If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
-#     )
+@client.event
+async def on_command_error(ctx, error):
+    embed=nextcord.Embed(
+        title="❌ Error",
+        colour= nextcord.Colour.red(),
+        description=f"{error} | To see a list of available commands, please use `/help` for more info! If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
+    )
                         
-#     embed.timestamp = datetime.now()
+    embed.timestamp = datetime.now()
             
-#     await ctx.reply(embed=embed)
+    await ctx.reply(embed=embed)
 
 
 #################################
