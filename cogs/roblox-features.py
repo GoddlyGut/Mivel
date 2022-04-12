@@ -379,7 +379,15 @@ class roblox_features(commands.Cog):
 
                     channel = await interaction.user.create_dm()
 
-                    await interaction.response.send_message(f"{interaction.user.mention}, please check your dms!")
+                    
+                    embed_check_dm = nextcord.Embed(
+                        title="",
+                        description=f"{interaction.user.mention}, please check your dms!",
+                        colour=nextcord.Colour.blurple()
+                    )
+                    
+                
+                    await interaction.response.send_message(embed=embed_check_dm)
 
 
                     embed_setup = Embed(
@@ -448,7 +456,7 @@ class roblox_features(commands.Cog):
                                 embed_success_one = Embed(
                                     title="✅ Step 1 Completed",
                                     color=nextcord.Color.green(),
-                                    description="You completed step 1 successfully! For the next step, paste `verificationbotpasteconfirmaccount` into your roblox profile description and type `confirm` here. You have 2 minutes to complete this step. To cancel, simply type `cancel`."
+                                    description="You completed step 1 successfully! For the next step, paste `verificationbotpasteconfirmaccount` into your roblox profile description and type `confirm` here. You have 2 minutes to complete this step. To cancel, simply type `.cancel`."
                                 )
 
                                 embed_success_one.timestamp = datetime.now()
