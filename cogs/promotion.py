@@ -185,7 +185,7 @@ class promotion(commands.Cog):
 
             return 
 
-    @nextcord.slash_command(name="promote", description="Use this command to promote something you made!", guild_ids=[961600278237425685])
+    @nextcord.slash_command(name="promote", description="Use this command to promote something you made!")
     async def promote_command(self, interaction:Interaction):
         mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
         cluster = MongoClient(mongo_url)
