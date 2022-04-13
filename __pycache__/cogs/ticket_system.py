@@ -1,17 +1,11 @@
 from nextcord.ext import commands
 import nextcord
-from nextcord import Guild, Member, Role, RoleTags, member
-from nextcord import GuildSticker, Interaction
-from nextcord.ext.commands import MissingPermissions, has_guild_permissions
-from nextcord.abc import GuildChannel
-from nextcord import Interaction, SlashOption, ChannelType
-from nextcord import components
+from nextcord import Interaction
+from nextcord import Interaction
 from nextcord.utils import get
 from datetime import datetime
-import sqlite3
-import os
-import json
-
+import pymongo
+from pymongo import MongoClient
 
    
 
@@ -21,56 +15,55 @@ class ticket_system(commands.Cog):
         
     
     @commands.group(invoke_without_command=True)
-    async def ticket_settings(self, ctx):
+    async def ticket(self, ctx):
         embed=nextcord.Embed(
-            title="Ticket Settings Info",
+            title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-            description="Available Setup Commands:\n`m!ticket_settings role <@role>`\n`m!ticket_settings message <'message'>`\n`m!ticket_settings disable`\n`m!ticket_settings enable`"
-            
+            description="```m!ticket role <@role>```**Sets a role that can view tickets**\n```m!ticket message <'message'>```**Sets a ticket message**\n```m!ticket disable```**Disables the ticket system**\n```m!ticket enable```**Enables the ticket system**" 
         )
 
-        embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
     
-    @ticket_settings.command()
-    async def role(self, ctx,*, ticket_support_role:nextcord.Role):
+    @ticket.command()
+    async def role(self, ctx,*, support_role:nextcord.Role):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('ticket.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT staff_role FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
             
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["ticket_collection"]
+            
+            message = None
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                message = x["message"]
+                enabled = x["enabled"]
                 
                 
+            if message is None:
+                message = "Thanks for creating a ticket! The support team will be with you shortly!" #default message if nothing is set
+            
+            ticket_info = {"_id":ctx.guild.id, "role":support_role.id, "message":message, "enabled": True}
+            
+            try:
+                collection.insert_one(ticket_info)
+            except:
+                collection.update({"_id":ctx.guild.id},{"$set":{"role":support_role.id}})
+            
             embed=nextcord.Embed(
-                title="Ticket Info Updated",
+                title="✅ Ticket Info Updated",
                 colour= nextcord.Colour.green(),
-                description=f"Ticket support role has been set to {ticket_support_role.mention}"
+                description=f"Ticket support role has been set to {support_role.mention}"
             )
                     
             embed.timestamp = datetime.now()
-                
             
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, staff_role) VALUES(?,?)")
-                val = (ctx.guild.id, ticket_support_role.id)
-                    
-                    
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET staff_role = ? WHERE guild_id = ?")
-                val = (ticket_support_role.id, ctx.guild.id)
-                await ctx.reply(embed=embed)
-                
-                
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
+            await ctx.reply(embed=embed)
+            
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -79,53 +72,57 @@ class ticket_system(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
     
-    @role.error
-    async def channel_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
+
         
         
-    @ticket_settings.command()
+    @ticket.command()
     async def disable(self, ctx):
         if ctx.author.guild_permissions.administrator:
             
-            db = sqlite3.connect('ticket.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["ticket_collection"]
+            
+            role = None
+            message = None
 
+            #{},{"_id":1, "channel":1, "message":1, "enabled":1}
+            for x in collection.find({"_id": ctx.guild.id}):
+                role = x["role"]
+                message = x["message"]
+                enabled = x["enabled"]
+            
+            
+            
+            if role is None and message is None:
+                embed_error=nextcord.Embed(
+                    title="❌ Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Please finish setting up the ticket system!'
+                )
+                
+                embed_error.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed_error)
+                return
+            else:
+                collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":False}})
+                
             embed=nextcord.Embed(
-                title="Ticket Settings Updated",
+                title="✅ Ticket System Updated",
                 colour= nextcord.Colour.green(),
-                description=f'Ticket system has been disabled!'
+                description=f"Ticket system has been disabled!"
             )
             
             embed.timestamp = datetime.now()
             
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, Enabled) VALUES(?,?)")
-                val = (ctx.guild.id, "False")
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET Enabled = ? WHERE guild_id = ?")
-                val = ("False", ctx.guild.id)
-                await ctx.reply(embed=embed)
-                
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
+            await ctx.reply(embed=embed)
+            
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -134,39 +131,52 @@ class ticket_system(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
         
-    @ticket_settings.command()
+    @ticket.command()
     async def enable(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('ticket.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["ticket_collection"]
+            
+            role = None
+            message = None
 
+            #{},{"_id":1, "channel":1, "message":1, "enabled":1}
+            for x in collection.find({"_id": ctx.guild.id}):
+                role = x["role"]
+                message = x["message"]
+                enabled = x["enabled"]
+            
+            
+            
+            if role is None and message is None:
+                embed_error=nextcord.Embed(
+                    title="❌ Error",
+                    colour= nextcord.Colour.red(),
+                    description=f'Please finish setting up the ticket system!'
+                )
+                
+                embed_error.timestamp = datetime.now()
+                
+                await ctx.reply(embed=embed_error)
+                return
+            else:
+                collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":True}})
+                
             embed=nextcord.Embed(
-                title="Ticket Settings Updated",
+                title="✅ Ticket System Updated",
                 colour= nextcord.Colour.green(),
-                description=f'Ticket system has been enabled!'
+                description=f"Ticket system has been disabled!"
             )
             
             embed.timestamp = datetime.now()
             
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, Enabled) VALUES(?,?)")
-                val = (ctx.guild.id, "True")
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET Enabled = ? WHERE guild_id = ?")
-                val = ("True", ctx.guild.id)
-                await ctx.reply(embed=embed)
-                
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
+            await ctx.reply(embed=embed)
         else:
             
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -175,39 +185,43 @@ class ticket_system(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms)
 
-    @ticket_settings.command()
-    async def message(self, ctx, *,ticket_message_new: str):
+    @ticket.command()
+    async def message(self, ctx, *,ticket_message: str):
         if ctx.author.guild_permissions.administrator:
-            db = sqlite3.connect('ticket.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT ticket_message FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
+            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            cluster = MongoClient(mongo_url)
+            db = cluster["database"]
+            collection = db["ticket_collection"]
+            
+            role = None
+            
+            
+            for x in collection.find({"_id": ctx.guild.id}):
+                role = x["role"]
+                enabled = x["enabled"]
+                
+                
+            
+            ticket_info = {"_id":ctx.guild.id, "role":role, "message":ticket_message, "enabled": True}
+            
+            try:
+                collection.insert_one(ticket_info)
+            except:
+                collection.update({"_id":ctx.guild.id},{"$set":{"message":ticket_message}})
             
             embed=nextcord.Embed(
-                title="Ticket Info Updated",
-                colour= nextcord.Colour.blurple(),
-                description=f'Ticket message has been set to "{ticket_message_new}"'
+                title="✅ Ticket Info Updated",
+                colour= nextcord.Colour.green(),
+                description=f"Ticket message has been set to '{ticket_message}'"
             )
                     
             embed.timestamp = datetime.now()
             
-            if result is None:
-                sql = ("INSERT INTO main(guild_id, ticket_message) VALUES(?,?)")
-                val = (ctx.guild.id, ticket_message_new)
-                await ctx.reply(embed=embed)
-            elif result is not None:
-                sql = ("UPDATE main SET ticket_message = ? WHERE guild_id = ?")
-                val = (ticket_message_new, ctx.guild.id)
-                await ctx.reply(embed=embed)
-                
-                
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
+            await ctx.reply(embed=embed)
+            
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -216,39 +230,29 @@ class ticket_system(commands.Cog):
             
             await ctx.reply(embed=embed_error_perms) 
     
-    @message.error
-    async def message_error(self,ctx, error):
-        embed=nextcord.Embed(
-            title="Error",
-            colour= nextcord.Colour.red(),
-            description=error
-        )
-                    
-        embed.timestamp = datetime.now()
-        
-        await ctx.reply(embed=embed)
     
         
     
     @nextcord.slash_command(name="ticket", description="Use this command to create a ticket")
-    async def ticket(self, interaction: Interaction):
-           
-        db = sqlite3.connect('ticket.sqlite')
-        cursor = db.cursor()
-        cursor.execute(f"SELECT staff_role FROM main WHERE guild_id = {interaction.guild.id}")
-        result = cursor.fetchone()
+    async def ticket_create(self, interaction: Interaction):
         
-        cursor_message = db.cursor()
-        cursor_message.execute(f"SELECT ticket_message FROM main WHERE guild_id = {interaction.guild.id}")
-        result_message = cursor_message.fetchone()
+        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        cluster = MongoClient(mongo_url)
+        db = cluster["database"]
+        collection = db["ticket_collection"]
+            
+        role = None
+        message = None
+
+        #{},{"_id":1, "channel":1, "message":1, "enabled":1}
+        for x in collection.find({"_id": interaction.guild.id}):
+            role = x["role"]
+            message = x["message"]
+            enabled = x["enabled"]
         
-        cursor_enabled = db.cursor()
-        cursor_enabled.execute(f"SELECT Enabled FROM main WHERE guild_id = {interaction.guild.id}")
-        result_enabled = cursor_enabled.fetchone()
-        
-        if result is None or result_message is None:
+        if role is None and message is None:
             embed_error=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="Please setup the ticket bot before use!"
             )
@@ -257,9 +261,9 @@ class ticket_system(commands.Cog):
             
             await interaction.response.send_message(embed=embed_error, ephemeral=True)
         else:
-            if result_enabled[0] == "False":
+            if enabled == False:
                 embed_not_enabled=nextcord.Embed(
-                    title="Ticket System",
+                    title="✅ Ticket System Updated",
                     colour= nextcord.Colour.red(),
                     description="Ticket system has been disabled!"
                 )   
@@ -268,8 +272,8 @@ class ticket_system(commands.Cog):
         
                 await interaction.response.send_message(embed=embed_not_enabled, ephemeral=True)
             else:
-                support_role = result[0]
-                ticket_message = result_message[0]
+                support_role = role
+                ticket_message = message
                 if get(interaction.guild.categories, name="Support-Category"):
                     SupportCategory = get(interaction.guild.categories, name="Support-Category")
                     if support_role != None:

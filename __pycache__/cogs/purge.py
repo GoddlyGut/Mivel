@@ -17,12 +17,11 @@ class purge(commands.Cog):
         
         
             embed_success=nextcord.Embed(
-                title="Successful Purge",
+                title="",
                 colour= nextcord.Colour.green(),
                 description=f"Successfully purged {amount} messages from {user.mention}!"
             )
                     
-            embed_success.timestamp = datetime.now()
         
             messages = []
 
@@ -36,7 +35,7 @@ class purge(commands.Cog):
                 await interaction.response.send_message(embed=embed_success, ephemeral=True)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -52,12 +51,11 @@ class purge(commands.Cog):
         
         
             embed_success=nextcord.Embed(
-                title="Successful Purge",
+                title="",
                 colour= nextcord.Colour.green(),
                 description=f"Successfully purged {amount} messages!"
             )
                     
-            embed_success.timestamp = datetime.now()
         
             messages = []
 
@@ -70,7 +68,7 @@ class purge(commands.Cog):
                 await interaction.response.send_message(embed=embed_success, ephemeral=True)
         else:
             embed_error_perms=nextcord.Embed(
-                title="Error",
+                title="❌ Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
