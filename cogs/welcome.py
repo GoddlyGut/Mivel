@@ -14,9 +14,8 @@ class welcome_system(commands.Cog):
         embed=nextcord.Embed(
             title="📦 Available Setup Commands:",
             colour= nextcord.Colour.blurple(),
-            description="`m!welcome channel <#channel>`-**Sets a welcome channel**\n`m!welcome message <'Message'>`-**Sets a welcome message**\n`m!welcome disable`-**Disables the welcome system**\n`m!welcome enable`-**Enables the welcome system**"
+            description="```m!welcome channel <#channel>```**Sets a welcome channel**\n```m!welcome message <'Message'>```**Sets a welcome message**\n```m!welcome disable```**Disables the welcome system**\n```m!welcome enable```**Enables the welcome system**"
         )      
-        embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
     
     @welcome.command()

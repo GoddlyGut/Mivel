@@ -1,4 +1,5 @@
 from nextcord import Embed, Member
+from nextcord.ui import Button, View
 from nextcord.ext import commands
 import nextcord
 from nextcord import GuildSticker, Interaction
@@ -15,7 +16,7 @@ class help(commands.Cog):
     async def help(self, interaction:Interaction):
         embed = nextcord.Embed(
             title="Commands",
-            description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)",
+            description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server!",
         )
         embed.add_field(name="⚙️ Default Prefix", value="```m!```",inline=False)
         embed.add_field(name="📜 Ticket System", value="```m!ticket help```")
@@ -23,11 +24,16 @@ class help(commands.Cog):
         embed.add_field(name="👋 Welcome System", value="```m!welcome help```")
         embed.add_field(name="📈 Server System", value="```m!stats help```")
         embed.add_field(name="✅ Verify System", value="```m!verify help```")
+        embed.add_field(name="📣 Promote System", value="```m!promote help```")
         embed.set_footer(text="Programmed by GoddlyGut#0001")
         embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)
         embed.color = nextcord.Color.blurple()
 
-        await interaction.response.send_message(embed=embed)
+        link = Button(label="Link to Support Server", url="https://discord.gg/HvPTFMfPRy", style=nextcord.ButtonStyle.blurple)
+        view=View()
+        view.add_item(link)
+
+        await interaction.response.send_message(embed=embed, view=view)
         
         
     @commands.Cog.listener()
@@ -47,7 +53,7 @@ class help(commands.Cog):
         if general and general.permissions_for(guild.me).send_messages:
             embed = nextcord.Embed(
                 title="Commands",
-                description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)",
+                description="This is a list of available setup commands provided by Mivel! Run these commands to get a list of setup options! **Other commands are slash-commands!** If you need support, you can join our support server!",
             )
             embed.add_field(name="⚙️ Default Prefix", value="```m!```",inline=False)
             embed.add_field(name="📜 Ticket System", value="```m!ticket help```")
@@ -55,10 +61,15 @@ class help(commands.Cog):
             embed.add_field(name="👋 Welcome System", value="```m!welcome help```")
             embed.add_field(name="📈 Server System", value="```m!stats help```")
             embed.add_field(name="✅ Verify System", value="```m!verify help```")
+            embed.add_field(name="📣 Promote System", value="```m!promote help```")
             embed.set_footer(text="Programmed by GoddlyGut#0001")
             embed.set_author(name="Mivel",icon_url=self.client.user.display_avatar.url)
             embed.color = nextcord.Color.blurple()
 
-            await general.send(embed=embed)
+            link = Button(label="Link to Support Server", url="https://discord.gg/HvPTFMfPRy", style=nextcord.ButtonStyle.blurple)
+            view=View()
+            view.add_item(link)
+
+            await general.send(embed=embed, view=view)
 def setup(client):
     client.add_cog(help(client))

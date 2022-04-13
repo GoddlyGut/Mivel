@@ -1,6 +1,5 @@
-import asyncio
 import nextcord
-from nextcord import Embed, Member
+from nextcord import Color, Embed, Member
 from nextcord.ext import commands
 from nextcord import Interaction, SlashOption
 from datetime import datetime
@@ -8,7 +7,7 @@ import roblox
 roblox_client = roblox.Client()
 import pymongo
 from pymongo import MongoClient
-
+from nextcord.ui import Button, View
 
 class roblox_features(commands.Cog):
     def __init__(self, client):
@@ -183,7 +182,7 @@ class roblox_features(commands.Cog):
         embed = nextcord.Embed(
             title="📦 Available Setup Commands:",
             colour=nextcord.Colour.blurple(),
-            description="`m!verify setup <@role>`-**Allows you to setup the verification system role**\n`m!verify disable`-**Allows you to disable the verification system**\n`m!verify enable`-**Allows you to enable the verification system**",
+            description="```m!verify setup <@role>```**Allows you to setup the verification system role**\n```m!verify disable```**Allows you to disable the verification system**\n```m!verify enable```**Allows you to enable the verification system**",
 
         )
         embed.timestamp = datetime.now()
@@ -260,7 +259,7 @@ class roblox_features(commands.Cog):
                     embed_error.timestamp = datetime.now()
                     
                     await ctx.reply(embed=embed_error)
-                    return
+                    
                 else:
                     collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":False}})
 
@@ -320,7 +319,7 @@ class roblox_features(commands.Cog):
                     embed_error.timestamp = datetime.now()
                     
                     await ctx.reply(embed=embed_error)
-                    return
+                    
                 else:
                     collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":True}})
 
@@ -339,7 +338,7 @@ class roblox_features(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
 
     @nextcord.slash_command(name="verify", description="Use this command to link your roblox account with your discord account!")
-    async def verify_command(self, interaction: Interaction):
+    async def verify_command(self, interaction: Interaction, username: str = SlashOption(description="Your roblox username", required=True)):
         
         mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
         cluster = MongoClient(mongo_url)
@@ -361,8 +360,7 @@ class roblox_features(commands.Cog):
             in_verification = x["in_verification"]
             
 
-        def check(m):
-            return interaction.user == m.author
+            
 
         if role != None:
             if enabled == True:
@@ -377,67 +375,104 @@ class roblox_features(commands.Cog):
                         in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":True}})
                     
 
-                    channel = await interaction.user.create_dm()
-
-                    await interaction.response.send_message(f"{interaction.user.mention}, please check your dms!")
 
 
-                    embed_setup = Embed(
-                        title="Verification Process",
-                        color=nextcord.Colour.blurple(),
-                        description=f"This message will guide you on how to get verified in {interaction.guild.name}",
-                    )
-                    
-                    embed_setup.add_field(
-                        name="Step 1", value="Please go to `roblox.com` and paste your username in this dm. You have 1 minute to complete this step.", inline=False)
-                    embed_setup.add_field(
-                        name="Step 2", value="Once finished with the above step, paste this value into your roblox profile description `verificationbotpasteconfirmaccount`. **Be sure to change this once you are completed with the verification process!**", inline=False)
-                    embed_setup.add_field(
-                        name="Step 3", value=f"Once finished with the above step, type `confirm` and you will be granted the verified role in {interaction.guild.name}", inline=False)
-                    embed_setup.timestamp = datetime.now()
-                    await channel.send(embed=embed_setup)
 
-                    while True:
+                        in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+                
                         try:
-                            msg = await self.client.wait_for('message', timeout=60.0, check=check)
-                        except asyncio.TimeoutError:
-                            embed_error_time = nextcord.Embed(
+                            in_verification_collection.insert_one(in_verify_info)
+                        except:
+                            in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                        
+                        
+                        
+
+                        
+                        try:
+                            user = await roblox_client.get_user_by_username(username, expand=True)
+                        except:
+                            embed_fail = Embed(
                                 title="❌ Verification Error",
-                                colour=nextcord.Colour.red(),
-                                description=f"Your time has ran out! Please re-run the `/verify` command in {interaction.guild.name}!"
+                                color=nextcord.Color.red(),
+                                description=f"You did not type a correct username. Please re-run the verification process!"
                             )
 
-                            embed_error_time.timestamp = datetime.now()
-
-                            await channel.send(embed=embed_error_time)
-
-                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                    
-                            try:
-                                in_verification_collection.insert_one(in_verify_info)
-                            except:
-                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                            embed_fail.timestamp = datetime.now()
+                            await interaction.response(embed=embed_fail)
                             
-                            break
+                            return
+                            
+                        
+                        found = False
+                        same_username = False
+                        
+                        for x in user_userid_collection.find():
+                            discord_id = x["_id"]
+                            user_id = x["roblox_user_id"]
+                            if int(user_id) == user.id:
+                                if int(discord_id) == interaction.user.id:
+                                    same_username = True
+                                else:
+                                    found = True
+                        
+                        if found == False and same_username == False:
+                            embed = nextcord.Embed(
+                                title=f"User Info For @{user.name}",
+                                color=nextcord.Color.green()
+                            )
+                            
+                            embed.add_field(
+                                name="Username",
+                                value="```" + user.name + "```"
+                            )
+                            embed.add_field(
+                                name="Display Name",
+                                value="```" + user.display_name + "```"
+                            )
+                            embed.add_field(
+                                name="User ID",
+                                value="```" + str(user.id) + "```"
+                            )
+                            
+                            embed.add_field(
+                                name="Date Created",
+                                value="```"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"```"
+                            )
+                            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
 
-                        if isinstance(msg.channel, nextcord.channel.DMChannel):
-                            if msg and msg.author != "Mivel":
-                                try:
-                                    print(str(msg.content))
-                                    username = await roblox_client.get_user_by_username(str(msg.content), expand=True)
-                                except:
-                                    embed_fail = Embed(
-                                        title="❌ Verification Error",
-                                        color=nextcord.Color.red(),
-                                        description=f"You did not type a correct username. Please re-run the verification process in {interaction.guild.name}. If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
-                                    )
+                            embed.add_field(
+                                name="Description",
+                                value="```" +
+                                (nextcord.utils.escape_markdown(
+                                    user.description or "No description")) + "```",
+                                inline=False
+                            )
 
-                                    embed_fail.timestamp = datetime.now()
-                                    await msg.reply(embed=embed_fail)
-                                    break
-                                    
-                                    
-                                    
+                            embed.color = nextcord.Color.blurple()
+
+                            embed.timestamp = datetime.now()
+                            
+                            view = View()
+                            yes_button = Button(label="Yes", style=nextcord.ButtonStyle.green)
+                            no_button = Button(label="No", style=nextcord.ButtonStyle.red)
+                            view.add_item(yes_button)
+                            view.add_item(no_button)
+                            
+                            channel = interaction.channel
+                            
+                            await interaction.send(embed=embed, view=view, ephemeral=False)
+                            
+                            async def yes_button_callback(inter): 
+                                
+                                
+                                embed_success = Embed(
+                                    title="",
+                                    description=f"✅ {interaction.user.mention}, You are now verified under @{user.name}",
+                                    color=nextcord.Color.green()
+                                )
+                                await channel.send(embed=embed_success)
+                                        
                                 in_verify_info = {"_id":interaction.user.id, "in_verification":False}
                     
                                 try:
@@ -446,146 +481,63 @@ class roblox_features(commands.Cog):
                                     in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
 
 
-                                embed_success_one = Embed(
-                                    title="✅ Step 1 Completed",
-                                    color=nextcord.Color.green(),
-                                    description="You completed step 1 successfully! For the next step, paste `verificationbotpasteconfirmaccount` into your roblox profile description and type `confirm` here. You have 2 minutes to complete this step. To cancel, simply type `cancel`."
-                                )
-
-                                embed_success_one.timestamp = datetime.now()
+                                roblox_info = {"_id":interaction.user.id, "roblox_user_id": user.id}
                                 
-                                await msg.reply(embed=embed_success_one)
                                 try:
-                                    msg_confirm = await self.client.wait_for('message', timeout=120.0, check=check)
-                                except asyncio.TimeoutError:
-                                    embed_error_time = nextcord.Embed(
-                                        title="❌ Verification Error",
-                                        colour=nextcord.Colour.red(),
-                                        description=f"Your time has ran out! Please re-run the `/verify` command in {interaction.guild.name}!"
-                                    )
-
-                                    embed_error_time.timestamp = datetime.now()
-
-                                    await channel.send(embed=embed_error_time)
-
-                                    in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+                                    user_userid_collection.insert_one(roblox_info)
+                                except:
+                                    user_userid_collection.update({"_id":interaction.user.id},{"$set":{"roblox_user_id": user.id}})
+                                
+                                await interaction.user.edit(nick=user.name)
+                                
+                                role_val = nextcord.utils.get(interaction.guild.roles, id=role)
+                                await interaction.user.add_roles(role_val)
+                                
+                            async def no_button_callback(inter): 
+                                
+                                
+                                embed_error = Embed(
+                                    title="",
+                                    description=f"❌ {interaction.user.mention}, Restart the verification process!",
+                                    color=nextcord.Color.red()
+                                )
+                                await channel.send(embed=embed_error)
+                                        
+                                in_verify_info = {"_id":interaction.user.id, "in_verification":False}
                     
-                                    try:
-                                        in_verification_collection.insert_one(in_verify_info)
-                                    except:
-                                        in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                                try:
+                                    in_verification_collection.insert_one(in_verify_info)
+                                except:
+                                    in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
 
-                                    break
+                                
+                            yes_button.callback = yes_button_callback
+                            no_button.callback = no_button_callback
+                            
+                            return
+                            
+                                   
+                        else:
+                            if same_username == True:
+                                embed_error_same = Embed(
+                                    title="",
+                                    description=f"❌ You are already verified under @{user.name}!",
+                                    color=nextcord.Color.red()
+                                )
+                                
+                                await interaction.response.send_message(embed=embed_error_same)
+                                
+                            elif found == True:
+                                embed_error = Embed(
+                                    title="",
+                                    description=f"❌ Someone already verified under @{user.name}! Please try a different username!",
+                                    color=nextcord.Color.red()
+                                )
+                                
+                                await interaction.response.send_message(embed=embed_error)
 
-                                if isinstance(msg_confirm.channel, nextcord.channel.DMChannel):
-                                    if msg_confirm.content.lower() == "confirm":
-                                        updated_username = await roblox_client.get_user_by_username(str(username.name), expand=True)
-
-                                        if updated_username.description == "verificationbotpasteconfirmaccount":
-                                            embed_success_two = Embed(
-                                                title="✅ Verification Completed",
-                                                color=nextcord.Color.green(),
-                                                description=f"You have completed the verification process! The roblox account you linked is `@{username.name}`. You now have the verified role in {interaction.guild.name}"
-                                            )
-
-                                            embed_success_two.timestamp = datetime.now()
-
-                                            await msg_confirm.reply(embed=embed_success_two)
-
-
-                                            
-                                            embed_updated = Embed(title=f"Info for {username.name}")
-                                            embed_updated.add_field(
-                                                name="Username",
-                                                value="`" + username.name + "`"
-                                            )
-                                            embed_updated.add_field(
-                                                name="Display Name",
-                                                value="`" + username.display_name + "`"
-                                            )
-                                            embed_updated.add_field(
-                                                name="User ID",
-                                                value="`" + str(username.id) + "`"
-                                            )
-                                            
-                                            embed_updated.add_field(
-                                                name="Date Created",
-                                                value="`"+username.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
-                                            )
-                                            embed_updated.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={username.id}&width=420&height=420&format=png")
-
-                                            embed_updated.add_field(
-                                                name="Description",
-                                                value="```" +
-                                                (nextcord.utils.escape_markdown(
-                                                    username.description or "No description")) + "```",
-                                                inline=False
-                                            )
-
-                                            embed_updated.color = nextcord.Color.green()
-
-                                            embed_updated.timestamp = datetime.now()
-
-                                            await msg_confirm.channel.send(embed=embed_updated)
-
-  
-                                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                                    
-                                            try:
-                                                in_verification_collection.insert_one(in_verify_info)
-                                            except:
-                                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
-                                            
-                                            
-                                            roblox_info = {"_id":interaction.user.id, "roblox_user_id": updated_username.id}
-                                            
-                                            try:
-                                                user_userid_collection.insert_one(roblox_info)
-                                            except:
-                                                user_userid_collection.update({"_id":interaction.user.id},{"$set":{"roblox_user_id": updated_username.id}})
-                                            print(role)
-                                            
-                                            role_val = nextcord.utils.get(interaction.guild.roles, id=role)
-                                            await interaction.user.add_roles(role_val)
-
-                                            break
-                                        else:
-
-
-                                            embed_fail_two = Embed(
-                                                title="❌ Verification Error",
-                                                color=nextcord.Color.red(),
-                                                description=f"You did not type the correct text into your roblox profile description. Be sure to type `verificationbotpasteconfirmaccount`. Please re-run the verification process in {interaction.guild.name}. If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
-                                            )
-                                            embed_fail_two.timestamp = datetime.now()
-
-                                            await msg_confirm.reply(embed=embed_fail_two)
-
-                                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                                    
-                                            try:
-                                                in_verification_collection.insert_one(in_verify_info)
-                                            except:
-                                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
-                                            break
-                                    else:
-                                        embed_quit = Embed(
-                                            title="❌ Verification Quit",
-                                            color=nextcord.Color.red(),
-                                            description=f"You have successfully quit the verification process"
-                                        )
-                                        embed_quit.timestamp = datetime.now()
-
-                                        await msg_confirm.reply(embed=embed_quit)
-
-                                        in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                                    
-                                        try:
-                                            in_verification_collection.insert_one(in_verify_info)
-                                        except:
-                                            in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
-
-                                        break
+                                               
+                            
 
                 else:
                     embed_error_progress = nextcord.Embed(
@@ -597,6 +549,7 @@ class roblox_features(commands.Cog):
                     embed_error_progress.timestamp = datetime.now()
 
                     await interaction.response.send_message(embed=embed_error_progress)
+
 
             else:
                 embed_error_disable = nextcord.Embed(

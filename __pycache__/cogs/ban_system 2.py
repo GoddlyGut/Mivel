@@ -1,3 +1,4 @@
+from unicodedata import name
 import nextcord
 from nextcord import Guild, Member, member
 from nextcord.ext import commands
@@ -14,20 +15,14 @@ class ban_system(commands.Cog):
 
 
     @nextcord.slash_command(name="kick",description="Use this command to kick members!")
-    async def kick(self, interaction: Interaction,member: Member = nextcord.SlashOption(required=True),reason:str=nextcord.SlashOption(required=True)):
+    async def kick(self, interaction: Interaction,member: Member = nextcord.SlashOption(required=True),time:int=nextcord.SlashOption(required=True),reason:str=nextcord.SlashOption(required=True)):
         if interaction.user.guild_permissions.kick_members:
             if member.name != interaction.user.name:
                 await member.kick(reason=reason)
-                embed=nextcord.Embed(
-                    title="",
-                    color=nextcord.Color.green(),
-                    description=f'✅ {member.mention} has been kicked'
-                )
-
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(f'User {member.mention} has been kicked')
             else:
                 embed_error_action=nextcord.Embed(
-                    title="❌ Error",
+                    title="Error",
                     colour= nextcord.Colour.red(),
                     description="You cannot do this action to yourself!"
                 )
@@ -37,7 +32,7 @@ class ban_system(commands.Cog):
                 await interaction.response.send_message(embed=embed_error_action)   
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -52,16 +47,10 @@ class ban_system(commands.Cog):
             if member.name != interaction.user.name:
                 
                 await member.ban(reason=reason)
-                embed=nextcord.Embed(
-                    title="",
-                    color=nextcord.Color.green(),
-                    description=f'✅ {member.mention} has been banned'
-                )
-
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(f'User {member.mention} has been banned')
             else:
                 embed_error_action=nextcord.Embed(
-                    title="❌ Error",
+                    title="Error",
                     colour= nextcord.Colour.red(),
                     description="You cannot do this action to yourself!"
                 )
@@ -71,7 +60,7 @@ class ban_system(commands.Cog):
                 await interaction.response.send_message(embed=embed_error_action)   
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -90,9 +79,9 @@ class ban_system(commands.Cog):
             await interaction.channel.set_permissions(interaction.guild.default_role,overwrite=overwrite)
             
             embed = nextcord.Embed(
-                title="",
+                title="Channel Lockdown",
                 color=nextcord.Colour.green(),
-                description=f"✅ {interaction.channel.mention} has been successfully locked!"
+                description=f"{interaction.channel.mention} has been successfully locked down by {interaction.user.mention}!"
             )
             
             embed.timestamp = datetime.now()
@@ -100,7 +89,7 @@ class ban_system(commands.Cog):
             await interaction.response.send_message(embed=embed)
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -117,9 +106,9 @@ class ban_system(commands.Cog):
             await interaction.channel.set_permissions(interaction.guild.default_role,overwrite=overwrite)
             
             embed = nextcord.Embed(
-                title="",
+                title="Channel Unlocked",
                 color=nextcord.Colour.green(),
-                description=f"✅ {interaction.channel.mention} has been successfully unlocked!"
+                description=f"{interaction.channel.mention} has been successfully unlocked by {interaction.user.mention}!"
             )
             
             embed.timestamp = datetime.now()
@@ -127,7 +116,7 @@ class ban_system(commands.Cog):
             await interaction.response.send_message(embed=embed)
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -154,9 +143,9 @@ class ban_system(commands.Cog):
                 duration = timedelta(days=days, hours=hours, minutes=minutes,seconds=seconds)
                 await member.timeout(timeout=duration)
                 embed_success_timeout=nextcord.Embed(
-                    title="",
+                    title="Timeout Success",
                     colour= nextcord.Colour.green(),
-                    description=f"✅ {member.mention} has been successfully put in timeout by {interaction.user.mention} for {days} day(s), {hours} hour(s), {minutes} minute(s), {seconds} second(s)"
+                    description=f"{member.mention} has been successfully put in timeout by {interaction.user.mention} for {days} day(s), {hours} hour(s), {minutes} minute(s), {seconds} second(s)"
                 )
                         
                 embed_success_timeout.timestamp = datetime.now()
@@ -164,7 +153,7 @@ class ban_system(commands.Cog):
                 await interaction.response.send_message(embed=embed_success_timeout)
             else:
                 embed_error_action=nextcord.Embed(
-                    title="❌ Error",
+                    title="Error",
                     colour= nextcord.Colour.red(),
                     description="You cannot do this action to yourself!"
                 )
@@ -174,7 +163,7 @@ class ban_system(commands.Cog):
                 await interaction.response.send_message(embed=embed_error_action)   
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -190,9 +179,9 @@ class ban_system(commands.Cog):
             duration = timedelta(days=0, hours=0, minutes=0,seconds=0)
             await user.timeout(duration)
             embed_success_remove_timeout=nextcord.Embed(
-                title="",
+                title="Timeout Success",
                 colour= nextcord.Colour.green(),
-                description=f"✅ {user.mention} has been successfully unmuted!"
+                description=f"{user.mention} has been successfully unmuted by {interaction.user.mention}"
             )
                         
             embed_success_remove_timeout.timestamp = datetime.now()
@@ -201,7 +190,7 @@ class ban_system(commands.Cog):
 
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -221,16 +210,10 @@ class ban_system(commands.Cog):
             
             if (user.name, user.discriminator) == (member_name, member_hash_code):
                 await interaction.guild.unban(user)
-                embed=nextcord.Embed(
-                    title="",
-                    color=nextcord.Color.green(),
-                    description=f'✅ {user.mention} has been unbanned!'
-                )
-
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(f'User {user.mention} has been unbanned!')
         else:
             embed_error_perms=nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour= nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
