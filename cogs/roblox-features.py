@@ -530,11 +530,14 @@ class roblox_features(commands.Cog):
                             elif found == True:
                                 embed_error = Embed(
                                     title="",
-                                    description=f"❌ Someone already verified under @{user.name}! Please try a different username!",
+                                    description=f"❌ Someone already verified under @{user.name}! Please try a different username! If you think this is an error or mistake, please report it in the support server!",
                                     color=nextcord.Color.red()
                                 )
                                 
-                                await interaction.response.send_message(embed=embed_error)
+                                view_invite = View()
+                                server_btn = Button(label="Join Support Server", url="https://discord.gg/HvPTFMfPRy")
+                                view_invite.add_item(server_btn)
+                                await interaction.response.send_message(embed=embed_error, view=view_invite)
 
                                                
                             
