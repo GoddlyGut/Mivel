@@ -464,7 +464,7 @@ class roblox_features(commands.Cog):
                             await interaction.send(embed=embed, view=view, ephemeral=False)
                             
                             async def yes_button_callback(inter): 
-                                
+                                view.stop()
                                 
                                 embed_success = Embed(
                                     title="",
@@ -494,7 +494,7 @@ class roblox_features(commands.Cog):
                                 await interaction.user.add_roles(role_val)
                                 
                             async def no_button_callback(inter): 
-                                
+                                view.stop()
                                 
                                 embed_error = Embed(
                                     title="",
