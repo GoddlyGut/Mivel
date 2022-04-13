@@ -22,8 +22,8 @@ else:
         json.dump(configTemplate, f)
 
 
-#TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
-TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
+TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+#TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
 
 #TOKEN = os.getenv("DISCORD_TOKEN")
 
