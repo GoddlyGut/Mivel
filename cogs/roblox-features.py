@@ -468,7 +468,7 @@ class roblox_features(commands.Cog):
                                 
                                 embed_success = Embed(
                                     title="",
-                                    description=f"✅ {interaction.user.mention}, You are now verified under @{user.name}",
+                                    description=f"✅ {interaction.user.mention}, You are now verified under `@{user.name}`",
                                     color=nextcord.Color.green()
                                 )
                                 await channel.send(embed=embed_success)

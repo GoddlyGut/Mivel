@@ -5,6 +5,7 @@ import json
 from nextcord.utils import get
 from nextcord import Embed, Member
 from datetime import datetime
+from nextcord.ui import Button, View
 
 intents = nextcord.Intents.all()
 intents.members = True
@@ -21,8 +22,8 @@ else:
         json.dump(configTemplate, f)
 
 
-TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
-#TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
+#TOKEN = "OTU2MzQyNzI2OTEwMTgxNDI2.Yju1kg.QVCzfdMpFinbYq5455Z8jowxosI"
+TOKEN = "OTYxNTk5MTI1NTk2NTY1NTM0.Yk7U-Q.x33xmleleZkM5Pq2porlmYmYViA"
 
 #TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -50,12 +51,15 @@ async def on_command_error(ctx, error):
     embed=nextcord.Embed(
         title="❌ Error",
         colour= nextcord.Colour.red(),
-        description=f"{error} | To see a list of available commands, please use `/help` for more info! If you think this is an error, you can join our support server here: [Support Server](https://discord.gg/HvPTFMfPRy)"
+        description=f"{error} | To see a list of available commands, please use `/help`!"
     )
-                        
+    
+    view = View()
+    link = Button(label="Support Server", url="https://discord.gg/HvPTFMfPRy")
+    view.add_item(link)   
     embed.timestamp = datetime.now()
             
-    await ctx.reply(embed=embed)
+    await ctx.reply(embed=embed, view=view)
 
 
 #################################

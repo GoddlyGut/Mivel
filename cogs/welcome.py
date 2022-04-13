@@ -3,6 +3,8 @@ from nextcord.ext import commands
 from datetime import datetime
 import pymongo
 from pymongo import MongoClient
+import roblox
+roblox_client = roblox.Client()
 
 class welcome_system(commands.Cog):
     def __init__(self, client):
@@ -245,17 +247,37 @@ class welcome_system(commands.Cog):
         cluster = MongoClient(mongo_url)
         db = cluster["database"]
         collection = db["welcome_collection"]
+        user_userid_collection = db["user_userid"]
+        verification_collection = db["verification_collection"]
         
+        roblox_id = None
         channel = None
         message = None
         enabled = None
         
+        verify_enabled = None
+        role = None
+        
+        for x in verification_collection.find({"_id": member.guild.id}):
+            role = x["role"]
+            verify_enabled = x["enabled"]
+        
+        for x in user_userid_collection.find({"_id": member.id}):
+            roblox_id = x["roblox_user_id"]
          
         for x in collection.find({"_id": member.guild.id}):
             channel = x["channel"]
             message = x["message"]
             enabled = x["enabled"]
 
+        
+        if role != None:
+            if verify_enabled == True:
+                if roblox_id != None:
+                    roblox_user = await roblox_client.get_user(int(roblox_id))
+                    await member.edit(nick=roblox_user.name)
+                    role_val = nextcord.utils.get(member.guild.roles, id=role)
+                    await member.add_roles(role_val)
         
         if channel is not None and message is not None and enabled is not None:
             if enabled == True:
