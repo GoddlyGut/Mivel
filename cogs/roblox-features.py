@@ -461,7 +461,7 @@ class roblox_features(commands.Cog):
                             
                             channel = interaction.channel
                             
-                            await interaction.send(embed=embed, view=view, ephemeral=False)
+                            await interaction.send("Is this you?",embed=embed, view=view, ephemeral=False)
                             
                             async def yes_button_callback(inter): 
                                 view.stop()
