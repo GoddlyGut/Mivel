@@ -375,9 +375,138 @@ class roblox_features(commands.Cog):
                         in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":True}})
                     
 
+                    try:
+                        user = await roblox_client.get_user_by_username(username, expand=True)
+                    except:
+                        embed_fail = Embed(
+                            title="❌ Verification Error",
+                            color=nextcord.Color.red(),
+                            description=f"You did not type a correct username. Please re-run the verification process!"
+                        )
+
+                        embed_fail.timestamp = datetime.now()
+                        await interaction.response(embed=embed_fail)
+                        
+                        in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+            
+                        try:
+                            in_verification_collection.insert_one(in_verify_info)
+                        except:
+                            in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                        
+                        return
+                        
+                    
+                    found = False
+                    same_username = False
+                    
+                    for x in user_userid_collection.find():
+                        discord_id = x["_id"]
+                        user_id = x["roblox_user_id"]
+                        if int(user_id) == user.id:
+                            if int(discord_id) == interaction.user.id:
+                                same_username = True
+                            else:
+                                found = True
+                    
+                    if found == False and same_username == False:
+                        embed = nextcord.Embed(
+                            title=f"User Info For @{user.name}",
+                            color=nextcord.Color.green()
+                        )
+                        
+                        embed.add_field(
+                            name="Username",
+                            value="```" + user.name + "```"
+                        )
+                        embed.add_field(
+                            name="Display Name",
+                            value="```" + user.display_name + "```"
+                        )
+                        embed.add_field(
+                            name="User ID",
+                            value="```" + str(user.id) + "```"
+                        )
+                        
+                        embed.add_field(
+                            name="Date Created",
+                            value="```"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"```"
+                        )
+                        embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
+
+                        embed.add_field(
+                            name="Description",
+                            value="```" +
+                            (nextcord.utils.escape_markdown(
+                                user.description or "No description")) + "```",
+                            inline=False
+                        )
+
+                        embed.color = nextcord.Color.blurple()
+
+                        embed.timestamp = datetime.now()
+                        
+                        view = View()
+                        yes_button = Button(label="Yes", style=nextcord.ButtonStyle.green)
+                        no_button = Button(label="No", style=nextcord.ButtonStyle.red)
+                        view.add_item(yes_button)
+                        view.add_item(no_button)
+                        
+                        channel = interaction.channel
+                        
+                        await interaction.send("Is this you?",embed=embed, view=view, ephemeral=False)
+                        
+                        async def yes_button_callback(inter): 
+                            view.stop()
+                            
+                            embed_success = Embed(
+                                title="",
+                                description=f"✅ {interaction.user.mention}, You are now verified under `@{user.name}`",
+                                color=nextcord.Color.green()
+                            )
+                            await channel.send(embed=embed_success)
+                                    
+                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+                
+                            try:
+                                in_verification_collection.insert_one(in_verify_info)
+                            except:
+                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
 
 
+                            roblox_info = {"_id":interaction.user.id, "roblox_user_id": user.id}
+                            
+                            try:
+                                user_userid_collection.insert_one(roblox_info)
+                            except:
+                                user_userid_collection.update({"_id":interaction.user.id},{"$set":{"roblox_user_id": user.id}})
+                            
+                            await interaction.user.edit(nick=user.name)
+                            
+                            role_val = nextcord.utils.get(interaction.guild.roles, id=role)
+                            await interaction.user.add_roles(role_val)
+                            
+                        async def no_button_callback(inter): 
+                            view.stop()
+                            
+                            embed_error = Embed(
+                                title="",
+                                description=f"❌ {interaction.user.mention}, Restart the verification process!",
+                                color=nextcord.Color.red()
+                            )
+                            await channel.send(embed=embed_error)
+                                    
+                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+                
+                            try:
+                                in_verification_collection.insert_one(in_verify_info)
+                            except:
+                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
 
+                            
+                        yes_button.callback = yes_button_callback
+                        no_button.callback = no_button_callback
+                        
                         in_verify_info = {"_id":interaction.user.id, "in_verification":False}
                 
                         try:
@@ -385,162 +514,47 @@ class roblox_features(commands.Cog):
                         except:
                             in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
                         
+                        return
                         
+                                
+                    else:
+                        if same_username == True:
+                            embed_error_same = Embed(
+                                title="",
+                                description=f"❌ You are already verified under @{user.name}!",
+                                color=nextcord.Color.red()
+                            )
+                            
+                            await interaction.response.send_message(embed=embed_error_same)
+                            
+                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+            
+                            try:
+                                in_verification_collection.insert_one(in_verify_info)
+                            except:
+                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                            
+                        elif found == True:
+                            embed_error = Embed(
+                                title="",
+                                description=f"❌ Someone already verified under @{user.name}! Please try a different username! If you think this is an error or mistake, please report it in the support server!",
+                                color=nextcord.Color.red()
+                            )
+                            
+                            view_invite = View()
+                            server_btn = Button(label="Join Support Server", url="https://discord.gg/HvPTFMfPRy")
+                            view_invite.add_item(server_btn)
+                            await interaction.response.send_message(embed=embed_error, view=view_invite)
+                            
+                            in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+            
+                            try:
+                                in_verification_collection.insert_one(in_verify_info)
+                            except:
+                                in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+
+                                            
                         
-
-                        
-                        try:
-                            user = await roblox_client.get_user_by_username(username, expand=True)
-                        except:
-                            embed_fail = Embed(
-                                title="❌ Verification Error",
-                                color=nextcord.Color.red(),
-                                description=f"You did not type a correct username. Please re-run the verification process!"
-                            )
-
-                            embed_fail.timestamp = datetime.now()
-                            await interaction.response(embed=embed_fail)
-                            
-                            return
-                            
-                        
-                        found = False
-                        same_username = False
-                        
-                        for x in user_userid_collection.find():
-                            discord_id = x["_id"]
-                            user_id = x["roblox_user_id"]
-                            if int(user_id) == user.id:
-                                if int(discord_id) == interaction.user.id:
-                                    same_username = True
-                                else:
-                                    found = True
-                        
-                        if found == False and same_username == False:
-                            embed = nextcord.Embed(
-                                title=f"User Info For @{user.name}",
-                                color=nextcord.Color.green()
-                            )
-                            
-                            embed.add_field(
-                                name="Username",
-                                value="```" + user.name + "```"
-                            )
-                            embed.add_field(
-                                name="Display Name",
-                                value="```" + user.display_name + "```"
-                            )
-                            embed.add_field(
-                                name="User ID",
-                                value="```" + str(user.id) + "```"
-                            )
-                            
-                            embed.add_field(
-                                name="Date Created",
-                                value="```"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"```"
-                            )
-                            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
-
-                            embed.add_field(
-                                name="Description",
-                                value="```" +
-                                (nextcord.utils.escape_markdown(
-                                    user.description or "No description")) + "```",
-                                inline=False
-                            )
-
-                            embed.color = nextcord.Color.blurple()
-
-                            embed.timestamp = datetime.now()
-                            
-                            view = View()
-                            yes_button = Button(label="Yes", style=nextcord.ButtonStyle.green)
-                            no_button = Button(label="No", style=nextcord.ButtonStyle.red)
-                            view.add_item(yes_button)
-                            view.add_item(no_button)
-                            
-                            channel = interaction.channel
-                            
-                            await interaction.send("Is this you?",embed=embed, view=view, ephemeral=False)
-                            
-                            async def yes_button_callback(inter): 
-                                view.stop()
-                                
-                                embed_success = Embed(
-                                    title="",
-                                    description=f"✅ {interaction.user.mention}, You are now verified under `@{user.name}`",
-                                    color=nextcord.Color.green()
-                                )
-                                await channel.send(embed=embed_success)
-                                        
-                                in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                    
-                                try:
-                                    in_verification_collection.insert_one(in_verify_info)
-                                except:
-                                    in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
-
-
-                                roblox_info = {"_id":interaction.user.id, "roblox_user_id": user.id}
-                                
-                                try:
-                                    user_userid_collection.insert_one(roblox_info)
-                                except:
-                                    user_userid_collection.update({"_id":interaction.user.id},{"$set":{"roblox_user_id": user.id}})
-                                
-                                await interaction.user.edit(nick=user.name)
-                                
-                                role_val = nextcord.utils.get(interaction.guild.roles, id=role)
-                                await interaction.user.add_roles(role_val)
-                                
-                            async def no_button_callback(inter): 
-                                view.stop()
-                                
-                                embed_error = Embed(
-                                    title="",
-                                    description=f"❌ {interaction.user.mention}, Restart the verification process!",
-                                    color=nextcord.Color.red()
-                                )
-                                await channel.send(embed=embed_error)
-                                        
-                                in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                    
-                                try:
-                                    in_verification_collection.insert_one(in_verify_info)
-                                except:
-                                    in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
-
-                                
-                            yes_button.callback = yes_button_callback
-                            no_button.callback = no_button_callback
-                            
-                            return
-                            
-                                   
-                        else:
-                            if same_username == True:
-                                embed_error_same = Embed(
-                                    title="",
-                                    description=f"❌ You are already verified under @{user.name}!",
-                                    color=nextcord.Color.red()
-                                )
-                                
-                                await interaction.response.send_message(embed=embed_error_same)
-                                
-                            elif found == True:
-                                embed_error = Embed(
-                                    title="",
-                                    description=f"❌ Someone already verified under @{user.name}! Please try a different username! If you think this is an error or mistake, please report it in the support server!",
-                                    color=nextcord.Color.red()
-                                )
-                                
-                                view_invite = View()
-                                server_btn = Button(label="Join Support Server", url="https://discord.gg/HvPTFMfPRy")
-                                view_invite.add_item(server_btn)
-                                await interaction.response.send_message(embed=embed_error, view=view_invite)
-
-                                               
-                            
 
                 else:
                     embed_error_progress = nextcord.Embed(

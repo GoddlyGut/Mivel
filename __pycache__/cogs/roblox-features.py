@@ -1,13 +1,17 @@
+import asyncio
+from roblox.thumbnails import Thumbnail, AvatarThumbnailType
+import sqlite3
 import nextcord
-from nextcord import Color, Embed, Member
+from nextcord import Embed, Guild, Member, member
 from nextcord.ext import commands
-from nextcord import Interaction, SlashOption
-from datetime import datetime
+from nextcord.ext.commands import MissingPermissions
+from nextcord import Interaction, SlashOption, ChannelType
+from datetime import datetime, timedelta
 import roblox
+from roblox.thumbnails import AvatarThumbnailType
 roblox_client = roblox.Client()
-import pymongo
-from pymongo import MongoClient
-from nextcord.ui import Button, View
+
+
 
 class roblox_features(commands.Cog):
     def __init__(self, client):
@@ -19,7 +23,7 @@ class roblox_features(commands.Cog):
             user = await roblox_client.get_user_by_username(username, expand=True)
         except:
             error_embed = Embed(
-                title="❌ Error",
+                title="Error",
                 color=nextcord.Colour.red(),
                 description="User not found!"
             )
@@ -50,8 +54,6 @@ class roblox_features(commands.Cog):
             name="Date Created",
             value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
         )
-        embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
-
         embed.add_field(
             name="Description",
             value="```" +
@@ -69,21 +71,15 @@ class roblox_features(commands.Cog):
         
     @nextcord.slash_command(name="roblox-user-info", description="This command prints your roblox user information")
     async def roblox_user_info(self, interaction:Interaction):
-        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-        cluster = MongoClient(mongo_url)
-        db = cluster["database"]
-        in_verification_collection = db["in_verification"]
-        user_userid_collection = db["user_userid"]
+        db_roblox_userid = sqlite3.connect('roblox_userid.sqlite')
+        cursor_roblox_userid = db_roblox_userid.cursor()
+        cursor_roblox_userid.execute(f"SELECT roblox_user_id FROM main WHERE user_id = {interaction.user.id}")
+        result_roblox_userid = cursor_roblox_userid.fetchone()
         
-        roblox_id = None
-
-        for x in user_userid_collection.find({"_id": interaction.user.id}):
-            roblox_id = x["roblox_user_id"]
-        
-        if roblox_id is None:
+        if result_roblox_userid is None:
             await interaction.response.send_message(f"{interaction.user.mention}, You need to verify yourself before using this command!")
         else:
-            user = await roblox_client.get_user(roblox_id)
+            user = await roblox_client.get_user(int(result_roblox_userid[0]))
 
             embed = Embed(title=f"Info for {user.name}")
             embed.add_field(
@@ -103,8 +99,6 @@ class roblox_features(commands.Cog):
                 name="Date Created",
                 value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
             )
-
-            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
             
             embed.add_field(
                 name="Description",
@@ -122,23 +116,15 @@ class roblox_features(commands.Cog):
             
     @nextcord.slash_command(name="other-roblox-user-info", description="This command prints a users roblox user information")
     async def roblox_other_info(self, interaction:Interaction, member:Member=SlashOption(required=True)):
+        db_roblox_userid = sqlite3.connect('roblox_userid.sqlite')
+        cursor_roblox_userid = db_roblox_userid.cursor()
+        cursor_roblox_userid.execute(f"SELECT roblox_user_id FROM main WHERE user_id = {member.id}")
+        result_roblox_userid = cursor_roblox_userid.fetchone()
         
-        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-        cluster = MongoClient(mongo_url)
-        db = cluster["database"]
-        in_verification_collection = db["in_verification"]
-        user_userid_collection = db["user_userid"]
-        
-        roblox_id = None
-
-        for x in user_userid_collection.find({"_id": member.id}):
-            roblox_id = x["roblox_user_id"]
-        
-        
-        if roblox_id is None:
-            await interaction.response.send_message(f"{interaction.user.mention}, {member.name} has not verified themselves!")
+        if result_roblox_userid is None:
+            await interaction.response.send_message(f"{interaction.user.mention}, This member has not verified themselves!")
         else:
-            user = await roblox_client.get_user(roblox_id)
+            user = await roblox_client.get_user(int(result_roblox_userid[0]))
 
             embed = Embed(title=f"Info for {user.name}")
             embed.add_field(
@@ -158,8 +144,6 @@ class roblox_features(commands.Cog):
                 name="Date Created",
                 value="`"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"`"
             )
-            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
-
             embed.add_field(
                 name="Description",
                 value="```" +
@@ -178,47 +162,55 @@ class roblox_features(commands.Cog):
             await interaction.response.send_message(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def verify(self, ctx):
+    async def verify_proccess(self, ctx):
         embed = nextcord.Embed(
-            title="📦 Available Setup Commands:",
+            title="Server Info",
             colour=nextcord.Colour.blurple(),
-            description="```m!verify setup <@role>```**Allows you to setup the verification system role**\n```m!verify disable```**Allows you to disable the verification system**\n```m!verify enable```**Allows you to enable the verification system**",
+            description="Available Setup Commands: \n`m!verify_proccess setup`\n`m!verify_proccess disable`\n`m!verify_proccess enable`",
 
         )
         embed.timestamp = datetime.now()
         await ctx.send(embed=embed)
 
-    @verify.command()
+    @verify_proccess.command()
     async def setup(self, ctx, role: nextcord.Role):
         if ctx.author.guild_permissions.administrator:
-            
-            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-            cluster = MongoClient(mongo_url)
-            db = cluster["database"]
-            collection = db["verification_collection"]
-            
-            verify_info = {"_id":ctx.guild.id, "role":role.id, "enabled":True}
-                
- 
-            try:
-                collection.insert_one(verify_info)
-            except:
-                collection.update({"_id":ctx.guild.id},{"$set":{"role":role.id}})
-            
+            db = sqlite3.connect('verify.sqlite')
+            cursor = db.cursor()
+            cursor.execute(
+                f"SELECT role FROM main WHERE guild_id = {ctx.guild.id}")
+            result = cursor.fetchone()
+
+            cursor_role = db.cursor()
+            cursor_role.execute(
+                f"SELECT role FROM main WHERE guild_id = {ctx.guild.id}")
+            result_role = cursor_role.fetchone()
 
             embed = Embed(
-                title="✅ Verification Setup",
+                title="Verification Setup",
                 color=nextcord.Colour.green(),
                 description=f"The verified role has been set to {role.mention}"
             )
 
             embed.timestamp = datetime.now()
 
-            await ctx.reply(embed=embed)
+            if result is None:
+                sql = ("INSERT INTO main(guild_id, role) VALUES(?,?)")
+                val = (ctx.guild.id, role.id)
+                await ctx.reply(embed=embed)
+            elif result is not None:
+                sql = ("UPDATE main SET role = ? WHERE guild_id = ?")
+                val = (role.id, ctx.guild.id)
+                await ctx.reply(embed=embed)
+
+            cursor.execute(sql, val)
+            db.commit()
+            cursor.close()
+            db.close()
 
         else:
             embed_error_perms = nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour=nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -227,48 +219,54 @@ class roblox_features(commands.Cog):
 
             await ctx.reply(embed=embed_error_perms)
 
+    @setup.error
+    async def setup_error(self, ctx, error):
+        embed = nextcord.Embed(
+            title="Error",
+            colour=nextcord.Colour.red(),
+            description=error
+        )
 
-    @verify.command()
+        embed.timestamp = datetime.now()
+        await ctx.reply(embed=embed)
+
+    @verify_proccess.command()
     async def disable(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-            cluster = MongoClient(mongo_url)
-            db = cluster["database"]
-            collection = db["verification_collection"]
-            
-            role = None
-            
-            for x in collection.find({"_id": ctx.guild.id}):
-                role = x["role"]
-                enabled = x["enabled"]
-            
-            if role != None:
+            db = sqlite3.connect('verify.sqlite')
+            cursor = db.cursor()
+            cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {ctx.guild.id}")
+            result = cursor.fetchone()
+
+            cursor_role = db.cursor()
+            cursor_role.execute(f"SELECT role FROM main WHERE guild_id = {ctx.guild.id}")
+            result_role = cursor_role.fetchone()
+
+            if result_role != None:
                 embed = Embed(
-                    title="✅ Verification Setup",
+                    title="Verification Setup",
                     color=nextcord.Colour.green(),
                     description=f"The verification system has been disabled!"
                 )
-                
-                if role is None:
-                    embed_error=nextcord.Embed(
-                        title="❌ Error",
-                        colour= nextcord.Colour.red(),
-                        description=f'Please finish setting up the verification system!'
-                    )
-                    
-                    embed_error.timestamp = datetime.now()
-                    
-                    await ctx.reply(embed=embed_error)
-                    
-                else:
-                    collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":False}})
 
                 embed.timestamp = datetime.now()
-                
-                await ctx.reply(embed=embed)
+
+                if result is None:
+                    sql = ("INSERT INTO main(guild_id, Enabled) VALUES(?,?)")
+                    val = (ctx.guild.id, "False")
+                    await ctx.reply(embed=embed)
+                elif result is not None:
+                    sql = ("UPDATE main SET Enabled = ? WHERE guild_id = ?")
+                    val = ("False", ctx.guild.id)
+                    await ctx.reply(embed=embed)
+
+                cursor.execute(sql, val)
+                db.commit()
+                cursor.close()
+                db.close()
             else:
                 embed_error_setup = nextcord.Embed(
-                    title="❌ Verification Error",
+                    title="Verification Error",
                     colour=nextcord.Colour.red(),
                     description="The verification system has not been setup!"
                 )
@@ -276,10 +274,9 @@ class roblox_features(commands.Cog):
                 embed_error_setup.timestamp = datetime.now()
 
                 await ctx.reply(embed=embed_error_setup)
-                
         else:
             embed_error_perms = nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour=nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -288,47 +285,54 @@ class roblox_features(commands.Cog):
 
             await ctx.reply(embed=embed_error_perms)
 
-    @verify.command()
+    @verify_proccess.command()
     async def enable(self, ctx):
         if ctx.author.guild_permissions.administrator:
-            mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-            cluster = MongoClient(mongo_url)
-            db = cluster["database"]
-            collection = db["verification_collection"]
-            
-            role = None
-            
-            for x in collection.find({"_id": ctx.guild.id}):
-                role = x["role"]
-                enabled = x["enabled"]
-            
-            if role != None:
+            db = sqlite3.connect('verify.sqlite')
+            cursor = db.cursor()
+            cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {ctx.guild.id}")
+            result = cursor.fetchone()
+
+            cursor_role = db.cursor()
+            cursor_role.execute(f"SELECT role FROM main WHERE guild_id = {ctx.guild.id}")
+            result_role = cursor_role.fetchone()
+
+            if result_role != None:
+
                 embed = Embed(
-                    title="✅ Verification Setup",
+                    title="Verification Setup",
                     color=nextcord.Colour.green(),
                     description=f"The verification system has been enabled!"
                 )
-                
-                if role is None:
-                    embed_error=nextcord.Embed(
-                        title="❌ Error",
-                        colour= nextcord.Colour.red(),
-                        description=f'Please finish setting up the verification system!'
-                    )
-                    
-                    embed_error.timestamp = datetime.now()
-                    
-                    await ctx.reply(embed=embed_error)
-                    
-                else:
-                    collection.update_one({"_id":ctx.guild.id},{"$set":{"enabled":True}})
 
                 embed.timestamp = datetime.now()
-                
-                await ctx.reply(embed=embed)
+
+                if result is None:
+                    sql = ("INSERT INTO main(guild_id, Enabled) VALUES(?,?)")
+                    val = (ctx.guild.id, "True")
+                    await ctx.reply(embed=embed)
+                elif result is not None:
+                    sql = ("UPDATE main SET Enabled = ? WHERE guild_id = ?")
+                    val = ("True", ctx.guild.id)
+                    await ctx.reply(embed=embed)
+
+                cursor.execute(sql, val)
+                db.commit()
+                cursor.close()
+                db.close()
+            else:
+                embed_error_setup = nextcord.Embed(
+                    title="Verification Error",
+                    colour=nextcord.Colour.red(),
+                    description="The verification system has not been setup!"
+                )
+
+                embed_error_setup.timestamp = datetime.now()
+
+                await ctx.reply(embed=embed_error_setup)
         else:
             embed_error_perms = nextcord.Embed(
-                title="❌ Error",
+                title="Error",
                 colour=nextcord.Colour.red(),
                 description="You do not have the required permissions!"
             )
@@ -338,213 +342,272 @@ class roblox_features(commands.Cog):
             await ctx.reply(embed=embed_error_perms)
 
     @nextcord.slash_command(name="verify", description="Use this command to link your roblox account with your discord account!")
-    async def verify_command(self, interaction: Interaction, username: str = SlashOption(description="Your roblox username", required=True)):
-        
-        mongo_url = "mongodb+srv://GoddlyGut:Chess123@cluster0.ardmx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-        cluster = MongoClient(mongo_url)
-        db = cluster["database"]
-        in_verification_collection = db["in_verification"]
-        verification_collection = db["verification_collection"]
-        user_userid_collection = db["user_userid"]
-        
+    async def verify(self, interaction: Interaction):
+        db = sqlite3.connect('verify.sqlite')
+        cursor = db.cursor()
+        cursor.execute(f"SELECT Enabled FROM main WHERE guild_id = {interaction.guild.id}")
+        result = cursor.fetchone()
 
-        in_verification = None
-        enabled = None
-        role = None
+        cursor_role = db.cursor()
+        cursor_role.execute(f"SELECT role FROM main WHERE guild_id = {interaction.guild.id}")
+        result_role = cursor_role.fetchone()
 
-        for x in verification_collection.find({"_id": interaction.guild.id}):
-            role = x["role"]
-            enabled = x["enabled"]
+        db_verification = sqlite3.connect('in_verification.sqlite')
+        cursor_verification = db_verification.cursor()
+        cursor_verification.execute(f"SELECT in_verification FROM main WHERE user_id = {interaction.user.id}")
+        result_verification = cursor_verification.fetchone()
 
-        for x in in_verification_collection.find({"_id": interaction.user.id}):
-            in_verification = x["in_verification"]
-            
+        db_roblox_userid = sqlite3.connect('roblox_userid.sqlite')
+        cursor_roblox_userid = db_roblox_userid.cursor()
+        cursor_roblox_userid.execute(f"SELECT roblox_user_id FROM main WHERE user_id = {interaction.user.id}")
+        result_roblox_userid = cursor_roblox_userid.fetchone()
 
-            
+        def check(m):
+            return interaction.user == m.au
 
-        if role != None:
-            if enabled == True:
-                if in_verification == False or in_verification is None:
-
-
-                    in_verify_info = {"_id":interaction.user.id, "in_verification":True}
-                    
-                    try:
-                        in_verification_collection.insert_one(in_verify_info)
-                    except:
-                        in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":True}})
-                    
-
-
-
-
-                        in_verify_info = {"_id":interaction.user.id, "in_verification":False}
+        if result_role != None:
+            if result[0] is None or result[0] == "True":
+                role = nextcord.utils.get(
+                    interaction.guild.roles, id=int(result_role[0]))
                 
+                if result_verification is None or result_verification[0] == "False" or result_verification[0] is None:
+
+                    if result_verification is None:
+                        sql = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                        val = (interaction.user.id, "True")
+                    elif result_verification is not None:
+                        sql = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                        val = ("True", interaction.user.id)
+
+                    cursor_verification.execute(sql, val)
+                    db_verification.commit()
+
+                    channel = await interaction.user.create_dm()
+
+                    await interaction.response.send_message(f"{interaction.user.mention}, please check your dms!")
+
+
+                    embed_setup = Embed(
+                        title="Verification Process",
+                        color=nextcord.Colour.blurple(),
+                        description=f"This message will guide you on how to get verified in {interaction.guild.name}",
+                    )
+                    # embed_setup.author(name="Mivel",icon_url=self.client.user.display_avatar.url)
+                    embed_setup.add_field(
+                        name="Step 1", value="Please go to `roblox.com` and paste your username in this dm. You have 1 minute to complete this step.", inline=False)
+                    embed_setup.add_field(
+                        name="Step 2", value="Once finished with the above step, paste this value into your roblox profile description `mivelverificationtext`. **Be sure to change this once you are completed with the verification process!**", inline=False)
+                    embed_setup.add_field(
+                        name="Step 3", value=f"Once finished with the above step, type `confirm` and you will be granted the verified role in {interaction.guild.name}", inline=False)
+                    embed_setup.timestamp = datetime.now()
+                    await channel.send(embed=embed_setup)
+
+                    while True:
                         try:
-                            in_verification_collection.insert_one(in_verify_info)
-                        except:
-                            in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
-                        
-                        
-                        
-
-                        
-                        try:
-                            user = await roblox_client.get_user_by_username(username, expand=True)
-                        except:
-                            embed_fail = Embed(
-                                title="❌ Verification Error",
-                                color=nextcord.Color.red(),
-                                description=f"You did not type a correct username. Please re-run the verification process!"
+                            msg = await self.client.wait_for('message', timeout=60.0, check=check)
+                        except asyncio.TimeoutError:
+                            embed_error_time = nextcord.Embed(
+                                title="Verification Error",
+                                colour=nextcord.Colour.red(),
+                                description=f"Your time has ran out! Please re-run the `/verify` command in {interaction.guild.name}!"
                             )
 
-                            embed_fail.timestamp = datetime.now()
-                            await interaction.response(embed=embed_fail)
-                            
-                            return
-                            
-                        
-                        found = False
-                        same_username = False
-                        
-                        for x in user_userid_collection.find():
-                            discord_id = x["_id"]
-                            user_id = x["roblox_user_id"]
-                            if int(user_id) == user.id:
-                                if int(discord_id) == interaction.user.id:
-                                    same_username = True
-                                else:
-                                    found = True
-                        
-                        if found == False and same_username == False:
-                            embed = nextcord.Embed(
-                                title=f"User Info For @{user.name}",
-                                color=nextcord.Color.green()
-                            )
-                            
-                            embed.add_field(
-                                name="Username",
-                                value="```" + user.name + "```"
-                            )
-                            embed.add_field(
-                                name="Display Name",
-                                value="```" + user.display_name + "```"
-                            )
-                            embed.add_field(
-                                name="User ID",
-                                value="```" + str(user.id) + "```"
-                            )
-                            
-                            embed.add_field(
-                                name="Date Created",
-                                value="```"+user.created.strftime("%m/%d/%Y, %H:%M:%S")+"```"
-                            )
-                            embed.set_thumbnail(url=f"https://www.roblox.com/headshot-thumbnail/image?userId={user.id}&width=420&height=420&format=png")
+                            embed_error_time.timestamp = datetime.now()
 
-                            embed.add_field(
-                                name="Description",
-                                value="```" +
-                                (nextcord.utils.escape_markdown(
-                                    user.description or "No description")) + "```",
-                                inline=False
-                            )
+                            await channel.send(embed=embed_error_time)
 
-                            embed.color = nextcord.Color.blurple()
+                            if result_verification[0] is None:
+                                sql_false = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                                val_false = (interaction.user.id, "False")
+                            elif result_verification[0] is not None:
+                                sql_false = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                                val_false = ("False", interaction.user.id)
 
-                            embed.timestamp = datetime.now()
-                            
-                            view = View()
-                            yes_button = Button(label="Yes", style=nextcord.ButtonStyle.green)
-                            no_button = Button(label="No", style=nextcord.ButtonStyle.red)
-                            view.add_item(yes_button)
-                            view.add_item(no_button)
-                            
-                            channel = interaction.channel
-                            
-                            await interaction.send("Is this you?",embed=embed, view=view, ephemeral=False)
-                            
-                            async def yes_button_callback(inter): 
-                                view.stop()
-                                
-                                embed_success = Embed(
-                                    title="",
-                                    description=f"✅ {interaction.user.mention}, You are now verified under `@{user.name}`",
-                                    color=nextcord.Color.green()
-                                )
-                                await channel.send(embed=embed_success)
-                                        
-                                in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                    
+                                cursor_verification.execute(sql_false, val_false)
+                                db_verification.commit()
+                                cursor_verification.close()
+                                db_verification.close()
+
+                                break
+
+                        if isinstance(msg.channel, nextcord.channel.DMChannel):
+                            if msg and msg.author != "Mivel":
                                 try:
-                                    in_verification_collection.insert_one(in_verify_info)
+                                    username = await roblox_client.get_user_by_username(str(msg.content), expand=True)
                                 except:
-                                    in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                                    embed_fail = Embed(
+                                        title="Verification Error",
+                                        color=nextcord.Color.red(),
+                                        description=f"You did not type a correct username. Please re-run the verification process in {interaction.guild.name}."
+                                    )
 
+                                    embed_fail.timestamp = datetime.now()
 
-                                roblox_info = {"_id":interaction.user.id, "roblox_user_id": user.id}
-                                
+                                    await msg.reply(embed=embed_fail)
+
+                                    cursor_verification_updated = db_verification.cursor()
+                                    cursor_verification_updated.execute(f"SELECT in_verification FROM main WHERE user_id = {interaction.user.id}")
+                                    result_verification_updated = cursor_verification_updated.fetchone()
+
+                                    if result_verification_updated is None:
+                                        sql_false = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                                        val_false = (interaction.user.id, "False")
+                                    elif result_verification_updated is not None:
+                                        sql_false = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                                        val_false = ("False", interaction.user.id)
+
+                                    cursor_verification.execute(sql_false, val_false)
+                                    db_verification.commit()
+                                    cursor_verification.close()
+                                    db_verification.close()
+
+                                    break
+
+                                embed_success_one = Embed(
+                                    title="Step 1 Completed",
+                                    color=nextcord.Color.green(),
+                                    description="You completed step 1 successfully! For the next step, paste `mivelverificationtext` into your roblox profile description and type `confirm` here. You have 2 minutes to complete this step. To cancel, simply type `cancel`."
+                                )
+
+                                embed_success_one.timestamp = datetime.now()
+
+                                await msg.reply(embed=embed_success_one)
                                 try:
-                                    user_userid_collection.insert_one(roblox_info)
-                                except:
-                                    user_userid_collection.update({"_id":interaction.user.id},{"$set":{"roblox_user_id": user.id}})
-                                
-                                await interaction.user.edit(nick=user.name)
-                                
-                                role_val = nextcord.utils.get(interaction.guild.roles, id=role)
-                                await interaction.user.add_roles(role_val)
-                                
-                            async def no_button_callback(inter): 
-                                view.stop()
-                                
-                                embed_error = Embed(
-                                    title="",
-                                    description=f"❌ {interaction.user.mention}, Restart the verification process!",
-                                    color=nextcord.Color.red()
-                                )
-                                await channel.send(embed=embed_error)
-                                        
-                                in_verify_info = {"_id":interaction.user.id, "in_verification":False}
-                    
-                                try:
-                                    in_verification_collection.insert_one(in_verify_info)
-                                except:
-                                    in_verification_collection.update({"_id":interaction.user.id},{"$set":{"in_verification":False}})
+                                    msg_confirm = await self.client.wait_for('message', timeout=120.0, check=check)
+                                except asyncio.TimeoutError:
+                                    embed_error_time = nextcord.Embed(
+                                        title="Verification Error",
+                                        colour=nextcord.Colour.red(),
+                                        description=f"Your time has ran out! Please re-run the `/verify` command in {interaction.guild.name}!"
+                                    )
 
-                                
-                            yes_button.callback = yes_button_callback
-                            no_button.callback = no_button_callback
-                            
-                            return
-                            
-                                   
-                        else:
-                            if same_username == True:
-                                embed_error_same = Embed(
-                                    title="",
-                                    description=f"❌ You are already verified under @{user.name}!",
-                                    color=nextcord.Color.red()
-                                )
-                                
-                                await interaction.response.send_message(embed=embed_error_same)
-                                
-                            elif found == True:
-                                embed_error = Embed(
-                                    title="",
-                                    description=f"❌ Someone already verified under @{user.name}! Please try a different username! If you think this is an error or mistake, please report it in the support server!",
-                                    color=nextcord.Color.red()
-                                )
-                                
-                                view_invite = View()
-                                server_btn = Button(label="Join Support Server", url="https://discord.gg/HvPTFMfPRy")
-                                view_invite.add_item(server_btn)
-                                await interaction.response.send_message(embed=embed_error, view=view_invite)
+                                    embed_error_time.timestamp = datetime.now()
 
-                                               
-                            
+                                    await channel.send(embed=embed_error_time)
+
+                                    if result_verification is None:
+                                        sql_false = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                                        val_false = (
+                                            interaction.user.id, "False")
+                                    elif result_verification is not None:
+                                        sql_false = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                                        val_false = ("False", interaction.user.id)
+
+                                    cursor_verification.execute(sql_false, val_false)
+                                    db_verification.commit()
+                                    cursor_verification.close()
+                                    db_verification.close()
+
+                                    break
+
+                                if isinstance(msg_confirm.channel, nextcord.channel.DMChannel):
+                                    if msg_confirm.content.lower() == "confirm":
+                                        updated_username = await roblox_client.get_user_by_username(str(username.name), expand=True)
+
+                                        if updated_username.description == "mivelverificationtext":
+                                            embed_success_two = Embed(
+                                                title="Verification Completed",
+                                                color=nextcord.Color.green(),
+                                                description=f"You have completed the verification process! The roblox account you linked is `@{username.name}`. You now have the verified role in {interaction.guild.name}"
+                                            )
+
+                                            embed_success_two.timestamp = datetime.now()
+
+                                            await msg_confirm.reply(embed=embed_success_two)
+
+  
+
+                                            cursor_verification_updated = db_verification.cursor()
+                                            cursor_verification_updated.execute(f"SELECT in_verification FROM main WHERE user_id = {interaction.user.id}")
+                                            result_verification_updated = cursor_verification_updated.fetchone()
+
+                                            if result_verification_updated is None:
+                                                sql_false = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                                                val_false = (interaction.user.id, "False")
+                                            elif result_verification_updated is not None:
+                                                sql_false = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                                                val_false = ("False", interaction.user.id)
+
+                                            cursor_verification.execute(sql_false, val_false)
+                                            db_verification.commit()
+                                            cursor_verification.close()
+                                            db_verification.close()
+                                            
+                                            
+
+                                            
+                                            if result_roblox_userid is None:
+                                                sql_roblox = ("INSERT INTO main(user_id, roblox_user_id) VALUES(?,?)")
+                                                val_roblox = (interaction.user.id, updated_username.id)
+                                            elif result_roblox_userid is not None:
+                                                sql_roblox = ("UPDATE main SET roblox_user_id = ? WHERE user_id = ?")
+                                                val_roblox = (updated_username.id, interaction.user.id)
+                                            
+                                            cursor_roblox_userid.execute(sql_roblox, val_roblox)
+                                            db_roblox_userid.commit()
+                                            cursor_roblox_userid.close()
+                                            db_roblox_userid.close()
+                                            
+                                            role = nextcord.utils.get(interaction.guild.roles, id=int(result_role[0]))
+                                            await interaction.user.add_roles(role)
+
+                                            break
+                                        else:
+                                            cursor_verification_updated = db_verification.cursor()
+                                            cursor_verification_updated.execute(f"SELECT in_verification FROM main WHERE user_id = {interaction.user.id}")
+                                            result_verification_updated = cursor_verification_updated.fetchone()
+
+                                            embed_fail_two = Embed(
+                                                title="Verification Error",
+                                                color=nextcord.Color.red(),
+                                                description=f"You did not type the correct text into your roblox profile description. Be sure to type `mivelverificationtext`. Please re-run the verification process in {interaction.guild.name}."
+                                            )
+                                            embed_fail_two.timestamp = datetime.now()
+
+                                            await msg_confirm.reply(embed=embed_fail_two)
+
+                                            if result_verification_updated is None:
+                                                sql_false = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                                                val_false = (interaction.user.id, "False")
+                                            elif result_verification_updated is not None:
+                                                sql_false = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                                                val_false = ("False", interaction.user.id)
+
+                                            cursor_verification.execute(sql_false, val_false)
+                                            db_verification.commit()
+                                            cursor_verification.close()
+                                            db_verification.close()
+                                            break
+                                    else:
+                                        embed_quit = Embed(
+                                            title="Verification Quit",
+                                            color=nextcord.Color.red(),
+                                            description=f"You have successfully quit the verification process"
+                                        )
+                                        embed_quit.timestamp = datetime.now()
+
+                                        await msg_confirm.reply(embed=embed_quit)
+
+                                        cursor_verification_updated = db_verification.cursor()
+                                        cursor_verification_updated.execute(f"SELECT in_verification FROM main WHERE user_id = {interaction.user.id}")
+                                        result_verification_updated = cursor_verification_updated.fetchone()
+
+                                        if result_verification_updated is None:
+                                            sql_false = ("INSERT INTO main(user_id, in_verification) VALUES(?,?)")
+                                            val_false = (interaction.user.id, "False")
+                                        elif result_verification_updated is not None:
+                                            sql_false = ("UPDATE main SET in_verification = ? WHERE user_id = ?")
+                                            val_false = ("False", interaction.user.id)
+                                        cursor_verification.execute(sql_false, val_false)
+                                        db_verification.commit()
+                                        cursor_verification.close()
+                                        db_verification.close()
+
+                                        break
 
                 else:
                     embed_error_progress = nextcord.Embed(
-                        title="❌ Verification Error",
+                        title="Verification Error",
                         colour=nextcord.Colour.red(),
                         description="You already are in the verification process!"
                     )
@@ -553,10 +616,9 @@ class roblox_features(commands.Cog):
 
                     await interaction.response.send_message(embed=embed_error_progress)
 
-
             else:
                 embed_error_disable = nextcord.Embed(
-                    title="❌ Verification Error",
+                    title="Verification Error",
                     colour=nextcord.Colour.red(),
                     description="The verification system has been disabled!"
                 )
@@ -565,7 +627,7 @@ class roblox_features(commands.Cog):
                 await interaction.response.send_message(embed=embed_error_disable)
         else:
             embed_error_setup = nextcord.Embed(
-                title="❌ Verification Error",
+                title="Verification Error",
                 colour=nextcord.Colour.red(),
                 description="The verification system has not been setup!"
             )
