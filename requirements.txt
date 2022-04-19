@@ -3,3 +3,4 @@ roblox==2.0.0
 pymongo==3.12.3
 dnspython==2.2.1
 requests==2.27.1
+emoji==1.7.0
